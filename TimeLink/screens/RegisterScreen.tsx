@@ -11,8 +11,8 @@ import {
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigation';
-//import { useTheme } from '../theme/useTheme';
-//import { spacing } from '../theme/spacing';
+import { useTheme } from '../theme/useTheme';
+import { spacing } from '../theme/spacing';
 import { useAuth } from '../services/authContext';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { auth } from '../services/firebaseConfig'; // make sure this path is correct

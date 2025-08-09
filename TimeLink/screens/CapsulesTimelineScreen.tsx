@@ -16,7 +16,7 @@ import {
 } from '../services/capsules'; // ✅ Make sure this is implemented
 import { auth } from '../services/firebase';
 import type { Capsule } from '../types';
-import type { RootStackParamList } from '../navigation/AppNavigator';
+import type { RootStackParamList } from '../navigation/AppNavigation';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CapsulesTimeline'>;
 
