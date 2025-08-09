@@ -1,93 +1,76 @@
-// screens/WelcomeScreen.tsx
 import React from "react";
-import { View, Text, StyleSheet, Image, TouchableOpacity } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../App";
 
-const WelcomeScreen: React.FC = () => {
-  const navigation = useNavigation<any>();
+type Props = NativeStackScreenProps<RootStackParamList, "Welcome">;
 
+export default function WelcomeScreen({ navigation }: Props) {
   return (
     <View style={styles.container}>
-      {/* App Logo */}
-      <Image
-        source={require("../assets/logo.png")} // Replace with your logo file
-        style={styles.logo}
-        resizeMode="contain"
-      />
+      <Text style={styles.title}>Welcome to TimeLink</Text>
+      <Text style={styles.subtitle}>Your personal timeline manager</Text>
 
-      {/* App Name */}
-      <Text style={styles.title}>TimeLinked</Text>
-      <Text style={styles.subtitle}>
-        Stay connected across time and memory.
-      </Text>
-
-      {/* Buttons */}
       <TouchableOpacity
-        style={styles.primaryButton}
-        onPress={() => navigation.navigate("Login")}
+        style={styles.button}
+        onPress={() => navigation.navigate("Register")}
       >
-        <Text style={styles.primaryText}>Login</Text>
+        <Text style={styles.buttonText}>Get Started</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
-        style={styles.secondaryButton}
-        onPress={() => navigation.navigate("SignUp")}
+        style={[styles.button, styles.secondaryButton]}
+        onPress={() => navigation.navigate("Login")}
       >
-        <Text style={styles.secondaryText}>Sign Up</Text>
+        <Text style={styles.secondaryButtonText}>Login</Text>
       </TouchableOpacity>
     </View>
   );
-};
-
-export default WelcomeScreen;
+}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#1E1E2C",
-    alignItems: "center",
+    backgroundColor: "#fff",
     justifyContent: "center",
-    paddingHorizontal: 20,
-  },
-  logo: {
-    width: 180,
-    height: 180,
-    marginBottom: 20,
+    alignItems: "center",
+    padding: 20,
   },
   title: {
-    fontSize: 32,
-    fontWeight: "700",
-    color: "#fff",
+    fontSize: 28,
+    fontWeight: "bold",
     marginBottom: 10,
   },
   subtitle: {
     fontSize: 16,
-    color: "#aaa",
+    color: "#666",
+    marginBottom: 30,
     textAlign: "center",
-    marginBottom: 40,
   },
-  primaryButton: {
-    backgroundColor: "#6C63FF",
-    paddingVertical: 15,
-    paddingHorizontal: 60,
-    borderRadius: 30,
-    marginBottom: 15,
+  button: {
+    backgroundColor: "#007AFF",
+    paddingVertical: 14,
+    paddingHorizontal: 40,
+    borderRadius: 8,
+    marginTop: 10,
+    width: "80%",
+    alignItems: "center",
   },
-  primaryText: {
+  buttonText: {
     color: "#fff",
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "600",
   },
   secondaryButton: {
+    backgroundColor: "#fff",
     borderWidth: 1,
-    borderColor: "#6C63FF",
-    paddingVertical: 15,
-    paddingHorizontal: 60,
-    borderRadius: 30,
+    borderColor: "#007AFF",
   },
-  secondaryText: {
-    color: "#6C63FF",
-    fontSize: 18,
+  secondaryButtonText: {
+    color: "#007AFF",
+    fontSize: 16,
     fontWeight: "600",
   },
 });
+
+
