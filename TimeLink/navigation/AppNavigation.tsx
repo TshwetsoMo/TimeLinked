@@ -9,17 +9,17 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useTheme } from '../theme/ThemeContext';
 import { LightColors, DarkColors, Colors } from '../theme/colors';
 
-import WelcomeScreen from '../screens/Welcome';
-import LoginScreen from '../screens/Login';
-import SignUpScreen from '../screens/SignUp';
+import WelcomeScreen from '../screens/WelcomeScreen';
+import LoginScreen from '../screens/LoginScreen';
+import SignUpScreen from '../screens/RegisterScreen';
 import DashboardScreen from '../screens/DashboardScreen';
-import JournalScreen from '../screens/Journal';
-import CreateJournalScreen from '../screens/CreateJournal';
-import CreateCapsuleScreen from '../screens/CreateCapsule';
-import ReadJournalScreen from '../screens/ReadJournal';
-import CapsulesTimelineScreen from '../screens/CapsulesTimeline';
-import OpenCapsuleScreen from '../screens/OpenCapsule';
-import ProfileScreen from '../screens/Profile';
+import JournalScreen from '../screens/JournalScreen';
+import CreateJournalScreen from '../screens/CreateJournalScreen';
+import CreateCapsuleScreen from '../screens/CreateCapsuleScreen';
+import ReadJournalScreen from '../screens/ReadJournalScreen';
+import CapsulesTimelineScreen from '../screens/CapsulesTimelineScreen';
+import OpenCapsuleScreen from '../screens/OpenCapsuleScreen';
+import ProfileScreen from '../screens/ProfileScreen';
 
 export type RootStackParamList = {
   Welcome: undefined;
