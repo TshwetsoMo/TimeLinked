@@ -6,10 +6,15 @@ import {
   DarkTheme as NavigationDarkTheme,
 } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { useTheme } from '../theme/useTheme'; // Make sure this path is correct
-import { LightColors, DarkColors, Colors } from '../theme/colors';
 
-// Import all your screens, including the new one
+// ✅ FIX 2: Ensure the useTheme hook is imported from our custom context file.
+import { useTheme } from '../theme/ThemeContext';
+import { Colors } from '../theme/colors';
+
+// ✅ FIX 1: Import the UserProfile type so the navigator knows what it is.
+import type { UserProfile } from '../types';
+
+// Import all your screen components
 import WelcomeScreen from '../screens/Welcome';
 import LoginScreen from '../screens/Login';
 import SignUpScreen from '../screens/SignUp';
@@ -21,13 +26,14 @@ import ReadJournalScreen from '../screens/ReadJournal';
 import CapsulesTimelineScreen from '../screens/CapsulesTimeline';
 import OpenCapsuleScreen from '../screens/OpenCapsule';
 import ProfileScreen from '../screens/Profile';
-import SearchUsersScreen from '../screens/SearchUsersScreen'; // ✅ 1. Import the new screen
+import SearchUsersScreen from '../screens/SearchUsersScreen';
 import FriendsListScreen from '../screens/FriendsList';
 import InboxScreen from '../screens/Inbox';
 import FriendsFeedScreen from '../screens/FriendsFeed';
 import PublicFeedScreen from '../screens/PublicFeed';
 
-// This is the "map" that TypeScript is checking. We must add our new route here.
+
+// The complete "map" of all screens and their possible navigation parameters.
 export type RootStackParamList = {
   Welcome: undefined;
   Login: undefined;
@@ -36,11 +42,11 @@ export type RootStackParamList = {
   Journal: undefined;
   CreateJournal: { entryId?: string };
   ReadJournal: { entryId: string };
-  CreateCapsule: { capsuleId?: string; selectedRecipient?: UserProfile }; // Make sure to add selectedRecipient here too!
+  CreateCapsule: { capsuleId?: string; selectedRecipient?: UserProfile };
   CapsulesTimeline: undefined;
   OpenCapsule: { capsuleId: string };
   Profile: undefined;
-  SearchUsers: undefined; // ✅ 2. Add the new route to the type definition
+  SearchUsers: undefined;
   FriendsList: { asPicker?: boolean };
   Inbox: undefined;
   FriendsFeed: undefined;
@@ -50,13 +56,13 @@ export type RootStackParamList = {
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function AppNavigator() {
-  const { colors, mode } = useTheme(); // Use `mode` as we defined in the new ThemeContext
+  const { colors, mode } = useTheme();
 
-  const baseNavTheme = mode === 'dark' ? NavigationDarkTheme : NavigationDefaultTheme;
+  // Dynamically create the navigation theme based on the current app theme mode
   const navTheme = {
-    ...baseNavTheme,
+    ...(mode === 'dark' ? NavigationDarkTheme : NavigationDefaultTheme),
     colors: {
-      ...baseNavTheme.colors,
+      ...(mode === 'dark' ? NavigationDarkTheme.colors : NavigationDefaultTheme.colors),
       primary: colors.primary,
       background: colors.background,
       card: colors.card,
@@ -70,25 +76,37 @@ export default function AppNavigator() {
     <NavigationContainer theme={navTheme}>
       <Stack.Navigator
         initialRouteName="Welcome"
-        screenOptions={{ headerShown: false }}
+        // Set up default header styles for a consistent look
+        screenOptions={{
+          headerStyle: {
+            backgroundColor: navTheme.colors.card,
+          },
+          headerTintColor: navTheme.colors.primary,
+          headerTitleStyle: {
+            fontWeight: 'bold',
+          },
+          headerBackTitle: '',
+        }}
       >
-        <Stack.Screen name="Welcome" component={WelcomeScreen} />
-        <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="SignUp" component={SignUpScreen} />
-        <Stack.Screen name="Dashboard" component={DashboardScreen} />
+        {/* Screens without a visible header */}
+        <Stack.Screen name="Welcome" component={WelcomeScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="SignUp" component={SignUpScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="Dashboard" component={DashboardScreen} options={{ headerShown: false }} />
+
+        {/* Screens that will get the default styled header */}
         <Stack.Screen name="Journal" component={JournalScreen} />
-        <Stack.Screen name="CreateJournal" component={CreateJournalScreen} />
-        <Stack.Screen name="CreateCapsule" component={CreateCapsuleScreen} />
-        <Stack.Screen name="ReadJournal" component={ReadJournalScreen} />
-        <Stack.Screen name="CapsulesTimeline" component={CapsulesTimelineScreen} />
-        <Stack.Screen name="OpenCapsule" component={OpenCapsuleScreen} />
+        <Stack.Screen name="CreateJournal" component={CreateJournalScreen} options={{ title: 'Journal Entry' }} />
+        <Stack.Screen name="ReadJournal" component={ReadJournalScreen} options={{ title: 'Journal Entry' }} />
+        <Stack.Screen name="CreateCapsule" component={CreateCapsuleScreen} options={{ title: 'Time Capsule' }} />
+        <Stack.Screen name="CapsulesTimeline" component={CapsulesTimelineScreen} options={{ title: 'Sent Capsules' }} />
+        <Stack.Screen name="OpenCapsule" component={OpenCapsuleScreen} options={{ title: 'Capsule' }} />
         <Stack.Screen name="Profile" component={ProfileScreen} />
-        {/* ✅ 3. Add the screen component to the navigator stack */}
-        <Stack.Screen name="SearchUsers" component={SearchUsersScreen} /> 
-        <Stack.Screen name="FriendsList" component={FriendsListScreen} />
+        <Stack.Screen name="SearchUsers" component={SearchUsersScreen} options={{ title: 'Find Friends' }} />
+        <Stack.Screen name="FriendsList" component={FriendsListScreen} options={{ title: 'Connections' }} />
         <Stack.Screen name="Inbox" component={InboxScreen} />
-        <Stack.Screen name="FriendsFeed" component={FriendsFeedScreen} />
-        <Stack.Screen name="PublicFeed" component={PublicFeedScreen} />
+        <Stack.Screen name="FriendsFeed" component={FriendsFeedScreen} options={{ title: 'Friends Feed' }} />
+        <Stack.Screen name="PublicFeed" component={PublicFeedScreen} options={{ title: 'Explore' }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

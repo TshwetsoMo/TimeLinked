@@ -15,15 +15,14 @@ import {
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 
-// Import our services, hooks, and types
+// Import services and hooks
 import { useAuth } from '../services/authContext';
-import { useTheme } from '../theme/ThemeContext'; // Ensure this path is correct for your ThemeContext
-import { updateUserProfile } from '../services/authService'; // Ensure this is importing from your auth.ts
+import { useTheme } from '../theme/ThemeContext';
+import { updateUserProfile } from '../services/authService'; // Ensure this points to auth.ts
 import { uploadProfileImage } from '../services/storage';
 import { spacing } from '../theme/spacing';
 
 export default function ProfileScreen() {
-  // ✅ FIX 1: Destructure `mode` instead of `theme`. The theme object itself is the return value.
   const { colors, mode, toggleTheme } = useTheme();
   const { user, userProfile } = useAuth();
 
@@ -55,8 +54,8 @@ export default function ProfileScreen() {
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      // ✅ FIX 2: The MediaType enum is deprecated. Use a simple string instead.
-      mediaTypes: 'Images',
+      // ✅ FIX 1: The correct value is the lowercase string 'images'.
+      mediaTypes: 'images',
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.7,
@@ -92,7 +91,6 @@ export default function ProfileScreen() {
     try {
       await updateUserProfile(user.uid, {
         displayName: displayName.trim(),
-        // ✅ FIX 3: Convert a `null` value to `undefined` to match the expected type.
         photoURL: photoURL || undefined,
       });
       Alert.alert('Success', 'Your profile has been updated.');
@@ -153,7 +151,7 @@ export default function ProfileScreen() {
           <Text style={[styles.heading, { color: colors.text, marginTop: spacing.lg }]}>Settings</Text>
           <View style={[styles.settingRow, { borderTopColor: colors.border }]}>
             <Text style={[styles.settingLabel, { color: colors.text }]}>Dark Mode</Text>
-            {/* ✅ FIX 1 (cont.): Use `mode` for the value check. */}
+            {/* ✅ FIX 2: This comparison is now valid because `mode` can be 'light' OR 'dark'. */}
             <Switch
               value={mode === 'dark'}
               onValueChange={toggleTheme}
@@ -180,7 +178,7 @@ const styles = StyleSheet.create({
     emailText: { fontSize: 16, padding: spacing.sm },
     button: { height: 50, borderRadius: 8, justifyContent: 'center', alignItems: 'center', marginTop: spacing.lg },
     buttonText: { fontSize: 18, fontWeight: 'bold' },
-    settingsSection: { marginTop: spacing.xl, borderTopWidth: 1, borderTopColor: '#E0E0E0' },
+    settingsSection: { marginTop: spacing.xl },
     settingRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: spacing.md, borderTopWidth: 1 },
     settingLabel: { fontSize: 16 },
 });
