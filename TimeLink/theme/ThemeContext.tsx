@@ -1,53 +1,41 @@
 // src/theme/ThemeContext.tsx
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  ReactNode,
-  FC,
-} from 'react';
-import { Appearance, ColorSchemeName } from 'react-native';
-
-type ThemeType = 'light' | 'dark';
+import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
+import { useColorScheme } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { LightTheme, DarkTheme, ThemeType } from './theme';
 
 interface ThemeContextProps {
   theme: ThemeType;
   toggleTheme: () => void;
 }
 
-// 1) Create context with a default; we'll never actually use the default value.
-const ThemeContext = createContext<ThemeContextProps>({
-  theme: 'light',
-  toggleTheme: () => {},
-});
+const ThemeContext = createContext<ThemeContextProps | undefined>(undefined);
 
 interface ThemeProviderProps {
   children: ReactNode;
 }
 
-// 2) ThemeProvider is typed as FC so TS knows it returns JSX
-export const ThemeProvider: FC<ThemeProviderProps> = ({ children }) => {
-  // Start from system preference
-  const sysScheme = Appearance.getColorScheme() as ThemeType | null;
-  const [theme, setTheme] = useState<ThemeType>(sysScheme === 'dark' ? 'dark' : 'light');
+export const ThemeProvider = ({ children }: ThemeProviderProps) => {
+  const systemColorScheme = useColorScheme();
+  const [themeMode, setThemeMode] = useState(systemColorScheme || 'light');
 
-  // Listen for system changes
   useEffect(() => {
-    const sub = Appearance.addChangeListener(({ colorScheme }: { colorScheme: ColorSchemeName }) => {
-      if (colorScheme === 'dark' || colorScheme === 'light') {
-        setTheme(colorScheme);
+    const loadTheme = async () => {
+      const savedTheme = await AsyncStorage.getItem('themeMode');
+      if (savedTheme) {
+        setThemeMode(savedTheme as 'light' | 'dark');
       }
-    });
-    return () => {
-      // @ts-ignore: remove() exists on the subscription
-      sub.remove();
     };
+    loadTheme();
   }, []);
 
-  const toggleTheme = () => {
-    setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
+  const toggleTheme = async () => {
+    const newThemeMode = themeMode === 'light' ? 'dark' : 'light';
+    setThemeMode(newThemeMode);
+    await AsyncStorage.setItem('themeMode', newThemeMode);
   };
+
+  const theme = themeMode === 'light' ? LightTheme : DarkTheme;
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>
@@ -56,11 +44,16 @@ export const ThemeProvider: FC<ThemeProviderProps> = ({ children }) => {
   );
 };
 
-// 3) Custom hook for consuming the theme
-export const useTheme = (): ThemeContextProps => {
-  const ctx = useContext(ThemeContext);
-  if (!ctx) {
+/**
+ * ✅ This is the corrected custom hook.
+ * It provides access to the full theme object (including `mode`) AND `toggleTheme`.
+ */
+export const useTheme = (): ThemeType & { toggleTheme: () => void } => {
+  const context = useContext(ThemeContext);
+  if (!context) {
     throw new Error('useTheme must be used within a ThemeProvider');
   }
-  return ctx;
+  // This correctly spreads the theme object properties (`colors`, `spacing`, `mode`)
+  // and adds the `toggleTheme` function to the return value.
+  return { ...context.theme, toggleTheme: context.toggleTheme };
 };

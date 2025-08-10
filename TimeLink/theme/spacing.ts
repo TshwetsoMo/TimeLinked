@@ -1,6 +1,6 @@
 // src/theme/spacing.ts
+// A standardized spacing scale for consistent layout.
 
-// A simple spacing scale used throughout your styles
 export const spacing = {
   xs: 4,
   sm: 8,

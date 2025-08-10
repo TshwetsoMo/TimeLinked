@@ -1,3 +1,4 @@
+// src/theme/index.ts
 import { LightColors, DarkColors } from './colors';
 import { spacing } from './spacing';
 

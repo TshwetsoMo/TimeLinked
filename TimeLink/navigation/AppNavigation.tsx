@@ -1,4 +1,4 @@
-// src/navigation/AppNavigator.tsx
+// src/navigation/AppNavigation.tsx
 import React from 'react';
 import {
   NavigationContainer,
@@ -6,21 +6,28 @@ import {
   DarkTheme as NavigationDarkTheme,
 } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { useTheme } from '../theme/ThemeContext';
+import { useTheme } from '../theme/useTheme'; // Make sure this path is correct
 import { LightColors, DarkColors, Colors } from '../theme/colors';
 
-import WelcomeScreen from '../screens/WelcomeScreen';
-import LoginScreen from '../screens/LoginScreen';
-import SignUpScreen from '../screens/RegisterScreen';
-import DashboardScreen from '../screens/DashboardScreen';
-import JournalScreen from '../screens/JournalScreen';
-import CreateJournalScreen from '../screens/CreateJournalScreen';
-import CreateCapsuleScreen from '../screens/CreateCapsuleScreen';
-import ReadJournalScreen from '../screens/ReadJournalScreen';
-import CapsulesTimelineScreen from '../screens/CapsulesTimelineScreen';
-import OpenCapsuleScreen from '../screens/OpenCapsuleScreen';
-import ProfileScreen from '../screens/ProfileScreen';
+// Import all your screens, including the new one
+import WelcomeScreen from '../screens/Welcome';
+import LoginScreen from '../screens/Login';
+import SignUpScreen from '../screens/SignUp';
+import DashboardScreen from '../screens/Dashboard';
+import JournalScreen from '../screens/Journal';
+import CreateJournalScreen from '../screens/CreateJournal';
+import CreateCapsuleScreen from '../screens/CreateCapsule';
+import ReadJournalScreen from '../screens/ReadJournal';
+import CapsulesTimelineScreen from '../screens/CapsulesTimeline';
+import OpenCapsuleScreen from '../screens/OpenCapsule';
+import ProfileScreen from '../screens/Profile';
+import SearchUsersScreen from '../screens/SearchUsersScreen'; // ✅ 1. Import the new screen
+import FriendsListScreen from '../screens/FriendsList';
+import InboxScreen from '../screens/Inbox';
+import FriendsFeedScreen from '../screens/FriendsFeed';
+import PublicFeedScreen from '../screens/PublicFeed';
 
+// This is the "map" that TypeScript is checking. We must add our new route here.
 export type RootStackParamList = {
   Welcome: undefined;
   Login: undefined;
@@ -29,20 +36,23 @@ export type RootStackParamList = {
   Journal: undefined;
   CreateJournal: { entryId?: string };
   ReadJournal: { entryId: string };
-  CreateCapsule: { capsuleId?: string };
+  CreateCapsule: { capsuleId?: string; selectedRecipient?: UserProfile }; // Make sure to add selectedRecipient here too!
   CapsulesTimeline: undefined;
   OpenCapsule: { capsuleId: string };
   Profile: undefined;
+  SearchUsers: undefined; // ✅ 2. Add the new route to the type definition
+  FriendsList: { asPicker?: boolean };
+  Inbox: undefined;
+  FriendsFeed: undefined;
+  PublicFeed: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function AppNavigator() {
-  const { theme } = useTheme(); // 'light' | 'dark'
-  const colors: Colors = theme === 'dark' ? DarkColors : LightColors;
+  const { colors, mode } = useTheme(); // Use `mode` as we defined in the new ThemeContext
 
-  // Pick the base nav theme then override colors
-  const baseNavTheme = theme === 'dark' ? NavigationDarkTheme : NavigationDefaultTheme;
+  const baseNavTheme = mode === 'dark' ? NavigationDarkTheme : NavigationDefaultTheme;
   const navTheme = {
     ...baseNavTheme,
     colors: {
@@ -73,7 +83,14 @@ export default function AppNavigator() {
         <Stack.Screen name="CapsulesTimeline" component={CapsulesTimelineScreen} />
         <Stack.Screen name="OpenCapsule" component={OpenCapsuleScreen} />
         <Stack.Screen name="Profile" component={ProfileScreen} />
+        {/* ✅ 3. Add the screen component to the navigator stack */}
+        <Stack.Screen name="SearchUsers" component={SearchUsersScreen} /> 
+        <Stack.Screen name="FriendsList" component={FriendsListScreen} />
+        <Stack.Screen name="Inbox" component={InboxScreen} />
+        <Stack.Screen name="FriendsFeed" component={FriendsFeedScreen} />
+        <Stack.Screen name="PublicFeed" component={PublicFeedScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
 }
+
