@@ -5,42 +5,45 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   ActivityIndicator,
   FlatList,
   Image,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
-// Import our services, hooks, and types
+// Import services, hooks, and types
 import { RootStackParamList } from '../navigation/AppNavigation';
-import { useTheme } from '../theme/useTheme';
+import { useTheme } from '../theme/ThemeContext';
 import { getUserProfile } from '../services/users';
 import { subscribeToPublicFeed } from '../services/journal';
 import type { JournalEntry, UserProfile } from '../types';
 import { spacing } from '../theme/spacing';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'PublicFeed'>; // Add 'PublicFeed' to your RootStackParamList
+type Props = NativeStackScreenProps<RootStackParamList, 'PublicFeed'>;
 
 export default function PublicFeedScreen({ navigation }: Props) {
+  // Get the current theme colors for styling.
   const { colors } = useTheme();
 
+  // Local state to hold the list of public journal entries.
   const [feedEntries, setFeedEntries] = useState<JournalEntry[]>([]);
-  // State to cache author profile info
+  // A state object to cache author profile data, preventing redundant Firestore reads.
   const [authors, setAuthors] = useState<{ [id: string]: UserProfile }>({});
   const [loading, setLoading] = useState(true);
 
-  // This effect handles fetching the public feed
+  // This effect sets up the real-time subscription to the public feed.
+  // The empty dependency array `[]` means it runs only once when the screen mounts.
   useEffect(() => {
     setLoading(true);
 
-    // Subscribe to all entries with 'public' visibility
+    // Calls the centralized service to listen for all journal entries with 'public' visibility.
     const unsubscribe = subscribeToPublicFeed((entries) => {
       setFeedEntries(entries);
       
-      // Fetch profiles for any new authors in the feed
+      // After getting the entries, efficiently fetch profiles for any new authors.
       const authorIds = new Set(entries.map(e => e.userId));
       authorIds.forEach(id => {
+        // Only fetch if the author's profile is not already in our cache.
         if (!authors[id]) {
           getUserProfile(id).then(profile => {
             if (profile) {
@@ -52,16 +55,17 @@ export default function PublicFeedScreen({ navigation }: Props) {
       setLoading(false);
     });
 
-    // Cleanup the subscription on unmount
+    // Cleanup the subscription on unmount to prevent memory leaks.
     return () => unsubscribe();
   }, []);
 
+  // Defines how to render a single feed item card, consistent with the Friends Feed.
   const renderFeedItem = ({ item }: { item: JournalEntry }) => {
     const author = authors[item.userId];
 
     return (
       <View style={[styles.feedCard, { backgroundColor: colors.card, shadowColor: colors.text }]}>
-        <View style={styles.cardHeader}>
+        <View style={[styles.cardHeader, { borderBottomColor: colors.border }]}>
           <Image
             source={author?.photoURL ? { uri: author.photoURL } : require('../assets/logo.png')}
             style={styles.authorImage}
@@ -75,7 +79,7 @@ export default function PublicFeedScreen({ navigation }: Props) {
         </View>
         <Text style={[styles.cardContent, { color: colors.text }]}>{item.content}</Text>
         {item.mood && (
-          <Text style={[styles.moodText, { color: colors.textMuted }]}>
+          <Text style={[styles.moodText, { color: colors.accent }]}>
             Mood: {'★'.repeat(item.mood)}{'☆'.repeat(5 - item.mood)}
           </Text>
         )}
@@ -102,6 +106,7 @@ export default function PublicFeedScreen({ navigation }: Props) {
             <Text style={[styles.header, { color: colors.text }]}>Explore Public Feed</Text>
           }
           contentContainerStyle={{ paddingTop: spacing.sm }}
+          // Provides a helpful message when no public entries exist.
           ListEmptyComponent={
             <View style={styles.placeholderContainer}>
               <Text style={[styles.placeholderText, { color: colors.textMuted }]}>
@@ -115,6 +120,7 @@ export default function PublicFeedScreen({ navigation }: Props) {
   );
 }
 
+// All styles are themed and use consistent spacing.
 const styles = StyleSheet.create({
   safe: { flex: 1 },
   container: { flex: 1, paddingHorizontal: spacing.md },
@@ -134,7 +140,6 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.md,
     marginBottom: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
   },
   authorImage: {
     width: 40,

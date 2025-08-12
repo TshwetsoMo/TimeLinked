@@ -4,7 +4,7 @@ import {
   Alert,
   View,
   Text,
-  SectionList, // ✅ Use SectionList for a better UI
+  SectionList, 
   StyleSheet,
   SafeAreaView,
   TouchableOpacity,
@@ -28,7 +28,7 @@ export default function CapsulesTimelineScreen({ navigation }: Props) {
   const { colors } = useTheme();
 
   const [capsules, setCapsules] = useState<Capsule[]>([]);
-  // ✅ State to cache recipient profile info
+  // Get global user state and current theme colors.
   const [recipients, setRecipients] = useState<{ [id: string]: UserProfile }>({});
   const [loading, setLoading] = useState(true);
 

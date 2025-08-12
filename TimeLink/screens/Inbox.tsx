@@ -8,42 +8,45 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   FlatList,
-  Image,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
-// Import our services, hooks, and types
+// Import services, hooks, and types
 import { RootStackParamList } from '../navigation/AppNavigation';
 import { useAuth } from '../services/authContext';
-import { useTheme } from '../theme/useTheme';
+import { useTheme } from '../theme/ThemeContext';
 import { subscribeToReceivedCapsules } from '../services/capsules';
 import { getUserProfile } from '../services/users';
 import type { Capsule, UserProfile } from '../types';
 import { spacing } from '../theme/spacing';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Inbox'>; // Add 'Inbox' to your RootStackParamList
+type Props = NativeStackScreenProps<RootStackParamList, 'Inbox'>;
 
 export default function InboxScreen({ navigation }: Props) {
+  // Get global user state and current theme colors.
   const { user } = useAuth();
   const { colors } = useTheme();
 
+  // Local state to hold the list of received capsules.
   const [receivedCapsules, setReceivedCapsules] = useState<Capsule[]>([]);
-  // State to cache sender profile info for efficiency
+  // A state object to cache sender profile data, preventing redundant Firestore reads.
   const [senders, setSenders] = useState<{ [id: string]: UserProfile }>({});
   const [loading, setLoading] = useState(true);
 
+  // This effect sets up the real-time data subscription for capsules RECEIVED by the user.
   useEffect(() => {
     if (!user) return;
 
     setLoading(true);
-    // This subscribes to capsules SENT TO the current user that are PAST their delivery date.
+    // Calls the centralized service to listen for capsules where the user is the recipient.
+    // The service itself filters for capsules that are past their delivery date.
     const unsubscribe = subscribeToReceivedCapsules(user.uid, (fetchedCapsules) => {
       setReceivedCapsules(fetchedCapsules);
 
-      // After getting the capsules, fetch the profile for any new sender.
+      // After getting the capsules, efficiently fetch profiles for any new senders.
       const senderIds = new Set(fetchedCapsules.map(c => c.userId));
       senderIds.forEach(id => {
-        // Only fetch if we don't already have the profile cached in state.
+        // Only fetch if the sender's profile is not already in our cache.
         if (!senders[id]) {
           getUserProfile(id).then(profile => {
             if (profile) {
@@ -56,19 +59,24 @@ export default function InboxScreen({ navigation }: Props) {
       setLoading(false);
     });
 
+    // Cleanup the subscription on unmount to prevent memory leaks.
     return () => unsubscribe();
   }, [user]);
 
+  // Defines how to render a single received capsule card in the list.
   const renderReceivedCapsule = ({ item }: { item: Capsule }) => {
     const senderName = senders[item.userId]?.displayName || '...';
+    // `isDelivered` doubles as our "isRead" flag.
     const isNew = !item.isDelivered;
 
     return (
       <TouchableOpacity
         style={[styles.capsuleCard, { backgroundColor: colors.card, shadowColor: colors.text }]}
+        // Tapping a card navigates to the universal OpenCapsuleScreen to view the content.
         onPress={() => navigation.navigate('OpenCapsule', { capsuleId: item.id })}
       >
-        <View style={styles.cardHeader}>
+        <View style={[styles.cardHeader, { borderBottomColor: colors.border }]}>
+          {/* A visual indicator is shown for new, unread messages. */}
           {isNew && <View style={[styles.newIndicator, { backgroundColor: colors.primary }]} />}
           <Text
             style={[styles.capsuleTitle, { color: colors.text, fontWeight: isNew ? 'bold' : 'normal' }]}
@@ -89,6 +97,7 @@ export default function InboxScreen({ navigation }: Props) {
     );
   };
   
+  // Renders a loading spinner until the initial data has been fetched.
   if (loading) {
     return (
       <SafeAreaView style={[styles.safe, { backgroundColor: colors.background, justifyContent: 'center' }]}>
@@ -106,6 +115,7 @@ export default function InboxScreen({ navigation }: Props) {
           keyExtractor={(item) => item.id}
           renderItem={renderReceivedCapsule}
           contentContainerStyle={{ paddingTop: spacing.sm }}
+          // Provides a helpful message when the user has no received capsules.
           ListEmptyComponent={
             <View style={styles.placeholderContainer}>
               <Text style={[styles.placeholderText, { color: colors.textMuted }]}>
@@ -119,6 +129,7 @@ export default function InboxScreen({ navigation }: Props) {
   );
 }
 
+// All styles are themed and use consistent spacing.
 const styles = StyleSheet.create({
   safe: { flex: 1 },
   container: { flex: 1, padding: spacing.md },
@@ -137,7 +148,6 @@ const styles = StyleSheet.create({
       alignItems: 'center',
       paddingBottom: spacing.sm,
       borderBottomWidth: 1,
-      borderBottomColor: '#eee',
   },
   newIndicator: {
     width: 10,
@@ -147,7 +157,7 @@ const styles = StyleSheet.create({
   },
   capsuleTitle: {
     fontSize: 18,
-    flex: 1, // Allow text to shrink if needed
+    flex: 1,
   },
   cardBody: {
       paddingTop: spacing.md,

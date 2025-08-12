@@ -1,4 +1,4 @@
-/// src/screens/FriendsFeedScreen.tsx
+// src/screens/FriendsFeedScreen.tsx
 import React, { useState, useEffect } from 'react';
 import {
   SafeAreaView,
@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
-// Import our services, hooks, and types
+// Import services, hooks, and types
 import { RootStackParamList } from '../navigation/AppNavigation';
 import { useAuth } from '../services/authContext';
 import { useTheme } from '../theme/ThemeContext';
@@ -24,32 +24,43 @@ import { spacing } from '../theme/spacing';
 type Props = NativeStackScreenProps<RootStackParamList, 'FriendsFeed'>;
 
 export default function FriendsFeedScreen({ navigation }: Props) {
+  // Get global user state and current theme colors.
   const { user } = useAuth();
   const { colors } = useTheme();
 
+  // Local state to hold the list of journal entries for the feed.
   const [feedEntries, setFeedEntries] = useState<JournalEntry[]>([]);
+  // A state object to cache author profile data, preventing redundant Firestore reads.
   const [authors, setAuthors] = useState<{ [id: string]: UserProfile }>({});
   const [loading, setLoading] = useState(true);
 
+  // This is the most complex data fetching logic in the app. It uses nested
+  // real-time subscriptions to build the feed.
   useEffect(() => {
     if (!user) return;
 
     setLoading(true);
 
+    // Step 1: Subscribe to the user's connections to get an up-to-date list of friend IDs.
     const unsubConnections = subscribeToConnections(user.uid, (connections) => {
       const friendIds = connections.map(c => c.id);
 
+      // If the user has no friends, the feed will be empty.
       if (friendIds.length === 0) {
         setFeedEntries([]);
         setLoading(false);
-        return;
+        return; // Exit early.
       }
 
+      // Step 2: Use the array of friend IDs to subscribe to the friends journal feed.
+      // This listener is nested, so it will automatically re-run if the user's friend list changes.
       const unsubFeed = subscribeToFriendsFeed(friendIds, (entries) => {
         setFeedEntries(entries);
         
+        // Step 3: Fetch profiles for any new authors that appear in the feed.
         const authorIds = new Set(entries.map(e => e.userId));
         authorIds.forEach(id => {
+          // Only fetch if the author's profile is not already in our cache.
           if (!authors[id]) {
             getUserProfile(id).then(profile => {
               if (profile) {
@@ -61,12 +72,15 @@ export default function FriendsFeedScreen({ navigation }: Props) {
         setLoading(false);
       });
 
+      // The inner return cleans up the feed subscription.
       return () => unsubFeed();
     });
 
+    // The outer return cleans up the connections subscription.
     return () => unsubConnections();
   }, [user]);
 
+  // Defines how to render a single feed item card in the FlatList.
   const renderFeedItem = ({ item }: { item: JournalEntry }) => {
     const author = authors[item.userId];
 
@@ -86,7 +100,7 @@ export default function FriendsFeedScreen({ navigation }: Props) {
         </View>
         <Text style={[styles.cardContent, { color: colors.text }]}>{item.content}</Text>
         {item.mood && (
-          <Text style={[styles.moodText, { color: colors.textMuted }]}>
+          <Text style={[styles.moodText, { color: colors.accent }]}>
             Mood: {'★'.repeat(item.mood)}{'☆'.repeat(5 - item.mood)}
           </Text>
         )}
@@ -113,6 +127,7 @@ export default function FriendsFeedScreen({ navigation }: Props) {
             <Text style={[styles.header, { color: colors.text }]}>Friends Feed</Text>
           }
           contentContainerStyle={{ paddingTop: spacing.sm }}
+          // Provides a helpful message and a call-to-action when the feed is empty.
           ListEmptyComponent={
             <View style={styles.placeholderContainer}>
               <Text style={[styles.placeholderText, { color: colors.textMuted }]}>
@@ -129,6 +144,7 @@ export default function FriendsFeedScreen({ navigation }: Props) {
   );
 }
 
+// All styles are themed and use consistent spacing.
 const styles = StyleSheet.create({
   safe: { flex: 1 },
   container: { flex: 1, paddingHorizontal: spacing.md },
@@ -148,7 +164,6 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.md,
     marginBottom: spacing.md,
     borderBottomWidth: 1,
-    // ✅ THEME FIX: Replaced hardcoded color with theme color
   },
   authorImage: {
     width: 40,
