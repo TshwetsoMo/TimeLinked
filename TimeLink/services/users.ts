@@ -1,6 +1,6 @@
 // src/services/users.ts
-// This service file handles all interactions with the 'users' collection
-// and the 'connections' sub-collection for managing friendships.
+// This service file handles all interactions with the 'users' collection,
+// managing profiles, connections, and the friend request system.
 
 import {
   collection,
@@ -9,7 +9,6 @@ import {
   getDocs,
   doc,
   getDoc,
-  setDoc,
   deleteDoc,
   onSnapshot,
   writeBatch,
@@ -49,6 +48,7 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
   };
 }
 
+
 /**
  * SEARCH: Find users by their exact email address.
  * @param email The email to search for.
@@ -68,34 +68,89 @@ export async function searchUsersByEmail(email: string, currentUserId: string): 
 }
 
 /**
- * ✅ NEW: Get a list of suggested users to display.
- * This fetches a limited number of the most recently created user profiles.
+ * GET SUGGESTIONS: Get a list of suggested users to display on the search screen.
  * @param count The number of suggestions to fetch.
  */
 export async function getSuggestedUsers(count: number): Promise<UserProfile[]> {
   // This query gets the latest users who signed up.
-  // It requires a single-field index on 'createdAt', which Firestore creates automatically.
   const q = query(usersCol, orderBy('createdAt', 'desc'), limit(count));
-  
   const querySnapshot = await getDocs(q);
-  
-  const users = querySnapshot.docs
-    .map(d => ({ id: d.id, ...d.data() } as UserProfile));
+  return querySnapshot.docs.map(d => ({ id: d.id, ...d.data() } as UserProfile));
+}
 
-  return users;
+// --- Friend Request System Functions ---
+
+/**
+ * SEND REQUEST: Creates a pending friend request.
+ * Creates an outgoing request for the sender and an incoming request for the recipient.
+ * @param senderId The current user's ID.
+ * @param recipientId The ID of the user to send the request to.
+ */
+export async function sendFriendRequest(senderId: string, recipientId: string) {
+  // A batch write ensures both documents are created successfully, or neither is.
+  const batch = writeBatch(db);
+  const outgoingRef = doc(db, 'users', senderId, 'outgoingFriendRequests', recipientId);
+  const incomingRef = doc(db, 'users', recipientId, 'incomingFriendRequests', senderId);
+
+  batch.set(outgoingRef, { createdAt: Timestamp.now() });
+  batch.set(incomingRef, { createdAt: Timestamp.now() });
+
+  return batch.commit();
 }
 
 /**
- * READ (CONNECTIONS): Real-time subscription to a user's list of friends.
+ * ACCEPT REQUEST: Accepts an incoming friend request.
+ * This function creates the mutual connection and deletes the pending requests.
+ * @param currentUserId The ID of the user accepting the request.
+ * @param senderId The ID of the user who sent the request.
+ */
+export async function acceptFriendRequest(currentUserId: string, senderId: string) {
+  const batch = writeBatch(db);
+
+  // 1. Create the mutual connection documents in the 'connections' sub-collection.
+  const currentUserConnectionRef = doc(db, 'users', currentUserId, 'connections', senderId);
+  batch.set(currentUserConnectionRef, { connectedAt: Timestamp.now() });
+  const senderConnectionRef = doc(db, 'users', senderId, 'connections', currentUserId);
+  batch.set(senderConnectionRef, { connectedAt: Timestamp.now() });
+
+  // 2. Atomically delete the request documents from both users.
+  const incomingRef = doc(db, 'users', currentUserId, 'incomingFriendRequests', senderId);
+  batch.delete(incomingRef);
+  const outgoingRef = doc(db, 'users', senderId, 'outgoingFriendRequests', currentUserId);
+  batch.delete(outgoingRef);
+
+  return batch.commit();
+}
+
+/**
+ * REJECT/CANCEL REQUEST: Rejects an incoming request or cancels an outgoing one.
+ * @param currentUserId The ID of the current user.
+ * @param otherUserId The ID of the other user involved in the request.
+ */
+export async function rejectFriendRequest(currentUserId: string, otherUserId: string) {
+  const batch = writeBatch(db);
+
+  // Delete the incoming request (if it exists on your end).
+  const incomingRef = doc(db, 'users', currentUserId, 'incomingFriendRequests', otherUserId);
+  batch.delete(incomingRef);
+
+  // Delete the outgoing request (if it exists on their end).
+  const outgoingRef = doc(db, 'users', otherUserId, 'outgoingFriendRequests', currentUserId);
+  batch.delete(outgoingRef);
+
+  return batch.commit();
+}
+
+// --- Real-time Listeners (Subscriptions) ---
+
+/**
+ * READ (CONNECTIONS): Real-time subscription to a user's list of established friends.
  * @param userId The current user's ID.
- * @param callback The function to be called with the array of connection UserProfiles.
+ * @param callback The function to call with the array of friend profiles.
  */
 export function subscribeToConnections(userId: string, callback: (connections: UserProfile[]) => void) {
   const connectionsCol = collection(db, 'users', userId, 'connections');
-  
   return onSnapshot(connectionsCol, async (snapshot) => {
-    // The snapshot gives us a list of connection documents (which only contain IDs).
-    // We need to fetch the full profile for each connection.
     const profilePromises = snapshot.docs.map(d => getUserProfile(d.id));
     const profiles = (await Promise.all(profilePromises)).filter(p => p !== null) as UserProfile[];
     callback(profiles);
@@ -103,41 +158,46 @@ export function subscribeToConnections(userId: string, callback: (connections: U
 }
 
 /**
- * CREATE (CONNECTION): Create a mutual connection between two users.
- * This uses a batch write to ensure the action is atomic (all or nothing).
- * @param currentUserId The ID of the user initiating the request.
- * @param friendId The ID of the user to become friends with.
+ * READ (INCOMING REQUESTS): Real-time subscription to a user's incoming friend requests.
+ * @param userId The current user's ID.
+ * @param callback The function to call with the profiles of users who sent requests.
  */
-export async function addConnection(currentUserId: string, friendId: string) {
-  const batch = writeBatch(db);
-
-  // Path for the current user's connection sub-collection.
-  const currentUserConnectionRef = doc(db, 'users', currentUserId, 'connections', friendId);
-  // Path for the friend's connection sub-collection.
-  const friendConnectionRef = doc(db, 'users', friendId, 'connections', currentUserId);
-
-  // Add the friend to the current user's list.
-  batch.set(currentUserConnectionRef, { connectedAt: Timestamp.now() });
-  // Add the current user to the friend's list (making it mutual).
-  batch.set(friendConnectionRef, { connectedAt: Timestamp.now() });
-
-  return batch.commit();
+export function subscribeToIncomingFriendRequests(userId: string, callback: (profiles: UserProfile[]) => void) {
+  const requestsCol = collection(db, 'users', userId, 'incomingFriendRequests');
+  return onSnapshot(requestsCol, async (snapshot) => {
+    const profilePromises = snapshot.docs.map(d => getUserProfile(d.id));
+    const profiles = (await Promise.all(profilePromises)).filter(p => p !== null) as UserProfile[];
+    callback(profiles);
+});
 }
 
 /**
- * DELETE (CONNECTION): Remove a mutual connection between two users.
+ * READ (OUTGOING REQUESTS): Real-time subscription to a user's sent friend requests.
+ * @param userId The current user's ID.
+ * @param callback The function to call with the profiles of users you have sent requests to.
+ */
+export function subscribeToOutgoingFriendRequests(userId: string, callback: (profiles: UserProfile[]) => void) {
+  const requestsCol = collection(db, 'users', userId, 'outgoingFriendRequests');
+  return onSnapshot(requestsCol, async (snapshot) => {
+    const profilePromises = snapshot.docs.map(d => getUserProfile(d.id));
+    const profiles = (await Promise.all(profilePromises)).filter(p => p !== null) as UserProfile[];
+    callback(profiles);
+  });
+}
+
+// --- Connection Management ---
+
+/**
+ * DELETE (CONNECTION): Removes a mutual connection between two users.
  * @param currentUserId The ID of the user initiating the removal.
  * @param friendId The ID of the user to unfriend.
  */
 export async function removeConnection(currentUserId: string, friendId: string) {
   const batch = writeBatch(db);
-
   const currentUserConnectionRef = doc(db, 'users', currentUserId, 'connections', friendId);
   const friendConnectionRef = doc(db, 'users', friendId, 'connections', currentUserId);
 
-  // Remove the friend from the current user's list.
   batch.delete(currentUserConnectionRef);
-  // Remove the current user from the friend's list.
   batch.delete(friendConnectionRef);
 
   return batch.commit();

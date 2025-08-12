@@ -12,15 +12,15 @@ import { useTheme } from '../theme/ThemeContext';
 import { useAuth } from '../services/authContext';
 import type { UserProfile } from '../types';
 
-// Import all screen components.
+// Import all screen components, including the new NotificationsScreen.
 import WelcomeScreen from '../screens/Welcome';
 import LoginScreen from '../screens/Login';
 import SignUpScreen from '../screens/SignUp';
 import DashboardScreen from '../screens/Dashboard';
 import JournalScreen from '../screens/Journal';
 import CreateJournalScreen from '../screens/CreateJournal';
-import CreateCapsuleScreen from '../screens/CreateCapsule';
 import ReadJournalScreen from '../screens/ReadJournal';
+import CreateCapsuleScreen from '../screens/CreateCapsule';
 import CapsulesTimelineScreen from '../screens/CapsulesTimeline';
 import OpenCapsuleScreen from '../screens/OpenCapsule';
 import ProfileScreen from '../screens/Profile';
@@ -29,9 +29,10 @@ import FriendsListScreen from '../screens/FriendsList';
 import InboxScreen from '../screens/Inbox';
 import FriendsFeedScreen from '../screens/FriendsFeed';
 import PublicFeedScreen from '../screens/PublicFeed';
+import NotificationsScreen from '../screens/Notifications'; // The final new screen
 
-// This is the single source of truth for ALL possible screens and their parameters in the entire app.
-// Both the authenticated and unauthenticated stacks will use this type definition.
+// This is the single source of truth for all possible screens and their parameters.
+// Both the authenticated and unauthenticated stacks use this type definition.
 export type RootStackParamList = {
   Welcome: undefined;
   Login: undefined;
@@ -49,6 +50,7 @@ export type RootStackParamList = {
   Inbox: undefined;
   FriendsFeed: undefined;
   PublicFeed: undefined;
+  Notifications: undefined; // The final new route
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -93,11 +95,12 @@ function AppStack({ navTheme }: { navTheme: any }) {
       <Stack.Screen name="Inbox" component={InboxScreen} />
       <Stack.Screen name="FriendsFeed" component={FriendsFeedScreen} options={{ title: 'Friends Feed' }} />
       <Stack.Screen name="PublicFeed" component={PublicFeedScreen} options={{ title: 'Explore' }} />
+      <Stack.Screen name="Notifications" component={NotificationsScreen} />
     </Stack.Navigator>
   );
 }
 
-// This is the main navigator component. It is now the single source of truth for routing logic.
+// This is the main navigator component. It is the single source of truth for routing logic.
 export default function AppNavigator() {
   // Get the current theme and the current user from their respective global contexts.
   const { colors, mode } = useTheme();
@@ -120,12 +123,12 @@ export default function AppNavigator() {
   return (
     <NavigationContainer theme={navTheme}>
       {/* 
-        This is the most important part of the fix.
+        This is the most important part of the architecture.
         We conditionally render the correct stack based on the user's login state.
         If a `user` object exists, the entire <AppStack /> is rendered.
         If `user` is null, the entire <AuthStack /> is rendered.
-        This completely prevents the "stuck on logout" bug by ensuring the Dashboard is
-        fully unmounted the instant a user logs out.
+        This prevents authentication-related bugs by ensuring that authenticated screens
+        are physically impossible to render when a user is logged out.
       */}
       {user ? <AppStack navTheme={navTheme} /> : <AuthStack />}
     </NavigationContainer>
