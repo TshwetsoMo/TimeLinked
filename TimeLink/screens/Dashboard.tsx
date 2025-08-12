@@ -16,7 +16,8 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 // Import hooks, services, types, and navigation
 import { useAuth } from '../services/authContext';
 import { useTheme } from '../theme/ThemeContext';
-import { logoutUser } from '../services/authService'; // Centralized logout function
+// The centralized logout function is imported from the correct auth service.
+import { logoutUser } from '../services/authService'; 
 import { subscribeToMyJournalEntries } from '../services/journal';
 import { subscribeToSentCapsules, subscribeToReceivedCapsules } from '../services/capsules';
 import { RootStackParamList } from '../navigation/AppNavigation';
@@ -57,47 +58,57 @@ const Card = React.memo(({ title, children, buttonLabel, onPress, colors }: any)
   </View>
 ));
 
+
 export default function DashboardScreen({ navigation }: Props) {
-  // Get theme colors for styling and screen dimensions for responsive layout.
+  // Get theme colors and screen dimensions for styling and responsive layout.
   const { colors } = useTheme();
   const { width } = useWindowDimensions();
   const isLandscape = width > 700;
 
-  // Get the global user state.
+  // Get the global authentication state. This hook will trigger a re-render when the user logs in or out.
   const { user, userProfile } = useAuth();
   
-  // Local state to hold data from Firestore subscriptions.
+  // Local state to hold the data fetched from Firestore subscriptions.
   const [myEntries, setMyEntries] = useState<JournalEntry[]>([]);
   const [sentCapsules, setSentCapsules] = useState<Capsule[]>([]);
   const [receivedCapsules, setReceivedCapsules] = useState<Capsule[]>([]);
   
-  // Smarter loading logic: tracks the initial load of each data stream.
+  // Smarter loading logic: tracks the initial load of each separate data stream.
   const [loading, setLoading] = useState(true);
   const [journalsLoaded, setJournalsLoaded] = useState(false);
   const [sentLoaded, setSentLoaded] = useState(false);
   const [receivedLoaded, setReceivedLoaded] = useState(false);
 
-  // This effect sets up all necessary real-time listeners when the user logs in.
+  // This is the crucial fix for the logout functionality.
+  // This effect hook has only one dependency: the `user` object.
   useEffect(() => {
-    if (!user) return;
+    // If the user object ever becomes null (which happens immediately after a successful logout)...
+    if (!user) {
+      // ...force a navigation reset to the Welcome screen.
+      // `replace` is used to prevent the user from pressing the "back" button
+      // and returning to the authenticated part of the app.
+      navigation.replace('Welcome');
+    }
+  }, [user]);
 
-    // Subscribes to the user's personal journal entries.
+  // This effect sets up all necessary real-time Firestore listeners when the component mounts with a valid user.
+  useEffect(() => {
+    if (!user) return; // Don't run subscriptions if there's no user.
+
     const unsubEntries = subscribeToMyJournalEntries(user.uid, (data) => {
       setMyEntries(data);
       setJournalsLoaded(true);
     });
-    // Subscribes to the capsules sent by the user.
     const unsubSentCaps = subscribeToSentCapsules(user.uid, (data) => {
       setSentCapsules(data);
       setSentLoaded(true);
     });
-    // Subscribes to capsules received by the user.
     const unsubReceivedCaps = subscribeToReceivedCapsules(user.uid, (data) => {
       setReceivedCapsules(data);
       setReceivedLoaded(true);
     });
 
-    // The returned function cleans up all listeners when the component unmounts.
+    // The returned function is a cleanup mechanism that closes all listeners when the component unmounts.
     return () => {
       unsubEntries();
       unsubSentCaps();
@@ -106,17 +117,18 @@ export default function DashboardScreen({ navigation }: Props) {
   }, [user]);
 
   // This effect controls the main loading spinner.
-  // It only hides the spinner after the first batch of data from ALL listeners has arrived.
+  // It only sets `loading` to false after the first batch of data from ALL three listeners has arrived.
   useEffect(() => {
     if (journalsLoaded && sentLoaded && receivedLoaded) {
       setLoading(false);
     }
   }, [journalsLoaded, sentLoaded, receivedLoaded]);
 
-  // Calls the centralized logout function from the auth service.
+  // Calls the centralized `logoutUser` function from the auth service.
   const handleLogout = async () => {
     try {
       await logoutUser();
+      // We no longer need to navigate here; the new useEffect hook handles it.
     } catch (error) {
       console.error("Failed to log out:", error);
     }
@@ -127,7 +139,7 @@ export default function DashboardScreen({ navigation }: Props) {
   const nextCapsule = upcomingSent[0] ?? null;
   const newReceivedCount = receivedCapsules.filter(c => !c.isDelivered).length;
 
-  // Handles the conditional navigation for the "Next Sent Capsule" card.
+  // Handles the conditional navigation for the "My Time Capsules" card.
   const handleNextCapsulePress = () => {
     if (nextCapsule) {
       navigation.navigate('CapsulesTimeline');
@@ -136,7 +148,7 @@ export default function DashboardScreen({ navigation }: Props) {
     }
   };
 
-  // Shows a loading spinner until the user's profile and initial data are loaded.
+  // Shows a loading spinner until the user's profile and all initial data streams are loaded.
   if (loading || !user || !userProfile) {
     return (
       <SafeAreaView style={[styles.safe, { justifyContent: 'center', backgroundColor: colors.background }]}>
@@ -164,7 +176,7 @@ export default function DashboardScreen({ navigation }: Props) {
         {/* LEFT PANE: Displays a summary of the user's recent journal entries. */}
         <View style={[styles.leftPane, { borderColor: colors.border, borderRightWidth: isLandscape ? 1 : 0 }]}>
           <FlatList
-            data={myEntries.slice(0, 10)} // Only show the 10 most recent entries.
+            data={myEntries.slice(0, 10)}
             keyExtractor={e => e.id}
             ListHeaderComponent={<Text style={[styles.paneTitle, {color: colors.text}]}>My Recent Entries</Text>}
             contentContainerStyle={{padding: spacing.sm}}
@@ -189,16 +201,18 @@ export default function DashboardScreen({ navigation }: Props) {
                 You have <Text style={{fontWeight: 'bold'}}>{newReceivedCount}</Text> new capsule(s) to open.
               </Text>
             </Card>
-
-            <Card
-              title="Next Sent Capsule"
-              buttonLabel={nextCapsule ? 'View Sent Timeline' : 'Schedule a Capsule'}
-              onPress={handleNextCapsulePress}
-              colors={colors}
-            >
-              <Text style={{ color: colors.text }}>
-                {nextCapsule ? `${nextCapsule.title || 'Untitled'} – ${nextCapsule.deliveryDate.toLocaleDateString()}` : 'No upcoming capsules scheduled.'}
+            
+            <Card title="My Time Capsules" colors={colors}>
+              <Text style={{ color: colors.text, marginBottom: spacing.md }}>
+                {nextCapsule
+                  ? `Next capsule delivers on ${nextCapsule.deliveryDate.toLocaleDateString()}.`
+                  : 'You have no upcoming capsules scheduled.'
+                }
               </Text>
+              <View style={{gap: spacing.sm}}>
+                  <ActionButton title="Schedule a New Capsule" onPress={() => navigation.navigate('CreateCapsule', {})} colors={colors} />
+                  <ActionButton title="View Sent Timeline" onPress={() => navigation.navigate('CapsulesTimeline')} colors={colors} type="secondary" />
+              </View>
             </Card>
 
             <Card title="Explore & Connect" colors={colors}>
