@@ -16,7 +16,7 @@ import {
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
-// Import our new services, hooks, and types
+// Import services, hooks, and types
 import { RootStackParamList } from '../navigation/AppNavigation';
 import { useAuth } from '../services/authContext';
 import { useTheme } from '../theme/ThemeContext';
@@ -28,33 +28,40 @@ import { spacing } from '../theme/spacing';
 type Props = NativeStackScreenProps<RootStackParamList, 'CreateCapsule'>;
 
 export default function CreateCapsuleScreen({ route, navigation }: Props) {
+  // Get global user state and current theme colors.
   const { user } = useAuth();
   const { colors } = useTheme();
   
+  // Get navigation parameters: `capsuleId` if editing, `selectedRecipient` if one was chosen.
   const { capsuleId, selectedRecipient } = route.params || {};
 
-  // State
+  // Local state for the form's controlled components.
   const [title, setTitle] = useState('');
   const [message, setMessage] = useState('');
   const [date, setDate] = useState(new Date(new Date().setHours(new Date().getHours() + 1)));
   const [showPicker, setShowPicker] = useState(false);
+  const [recipient, setRecipient] = useState<UserProfile | null>(null);
+  
+  // Separate loading states for fetching data vs. submitting the form.
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [recipient, setRecipient] = useState<UserProfile | null>(null);
 
-  // Effect to handle when a recipient is selected from the FriendsListScreen
+  // This effect listens for a `selectedRecipient` passed back from the FriendsListScreen.
+  // When a recipient is chosen, it updates the local state to display their name.
   useEffect(() => {
     if (selectedRecipient) {
       setRecipient(selectedRecipient);
     }
-  }, [selectedRecipient]);
+  }, [selectedRecipient]); // Re-runs only when the `selectedRecipient` param changes.
 
-  // Effect for "Edit" mode: load existing capsule data
+  // This effect handles "Edit Mode" by fetching the existing capsule's data.
   useEffect(() => {
     const loadCapsuleForEditing = async () => {
+      // Only runs if a `capsuleId` was passed as a navigation parameter.
       if (capsuleId) {
         setLoading(true);
         try {
+          // Fetches the capsule and its recipient's profile data to populate the form.
           const capsule = await getCapsule(capsuleId);
           if (capsule) {
             setTitle(capsule.title || '');
@@ -77,9 +84,11 @@ export default function CreateCapsuleScreen({ route, navigation }: Props) {
     loadCapsuleForEditing();
   }, [capsuleId, navigation]);
 
+  // Event handler for the native date/time picker.
   const onDateChange = (_event: any, selectedDate?: Date) => {
     const currentDate = selectedDate || date;
-    setShowPicker(Platform.OS === 'ios');
+    setShowPicker(Platform.OS === 'ios'); // On iOS, the picker is a modal.
+    // Client-side validation to ensure capsules can only be sent to the future.
     if (currentDate < new Date()) {
       Alert.alert("Invalid Date", "Time capsules must be set for a future date and time.");
       return;
@@ -87,8 +96,10 @@ export default function CreateCapsuleScreen({ route, navigation }: Props) {
     setDate(currentDate);
   };
 
+  // Handles the final submission of the form.
   const handleSave = async () => {
-    if (!user) return;
+    if (!user) return; // Safety check.
+    // Client-side validation for required fields.
     if (!recipient) {
       return Alert.alert('Recipient Required', 'Please select a friend to send this capsule to.');
     }
@@ -98,7 +109,9 @@ export default function CreateCapsuleScreen({ route, navigation }: Props) {
 
     setSaving(true);
     try {
+      // Determine whether to update an existing capsule or create a new one.
       if (capsuleId) {
+        // Calls the centralized service to update the document in Firestore.
         await updateCapsule(capsuleId, {
           title: title.trim(),
           recipientId: recipient.id,
@@ -107,10 +120,11 @@ export default function CreateCapsuleScreen({ route, navigation }: Props) {
         });
         Alert.alert('Success', 'Your time capsule has been updated!');
       } else {
+        // Calls the centralized service to create a new document in Firestore.
         await createCapsule(user.uid, recipient.id, message.trim(), date, title.trim());
         Alert.alert('Success', 'Your time capsule has been scheduled!');
       }
-      navigation.goBack();
+      navigation.goBack(); // Navigate back on success.
     } catch (err: any) {
       Alert.alert('Error', err.message);
     } finally {
@@ -118,6 +132,7 @@ export default function CreateCapsuleScreen({ route, navigation }: Props) {
     }
   };
 
+  // Renders a loading spinner during the initial data fetch in "Edit Mode".
   if (loading) {
     return (
       <SafeAreaView style={[styles.safe, { backgroundColor: colors.background, justifyContent: 'center' }]}>
@@ -134,8 +149,8 @@ export default function CreateCapsuleScreen({ route, navigation }: Props) {
             {capsuleId ? 'Edit Time Capsule' : 'New Time Capsule'}
           </Text>
 
+          {/* This button navigates to the FriendsListScreen in "picker" mode. */}
           <Text style={[styles.label, { color: colors.text }]}>To:</Text>
-          {/* This is the navigation trigger */}
           <TouchableOpacity
             style={[styles.pickerButton, { backgroundColor: colors.card, borderColor: colors.border }]}
             onPress={() => navigation.navigate('FriendsList', { asPicker: true })}
@@ -164,6 +179,7 @@ export default function CreateCapsuleScreen({ route, navigation }: Props) {
             </Text>
           </TouchableOpacity>
           
+          {/* The native DateTimePicker is only rendered when `showPicker` is true. */}
           {showPicker && (
             <DateTimePicker value={date} mode="datetime" display="spinner" onChange={onDateChange} />
           )}
@@ -197,9 +213,10 @@ export default function CreateCapsuleScreen({ route, navigation }: Props) {
   );
 }
 
+// All styles are themed and use consistent spacing.
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  container: { flexGrow: 1, padding: spacing.md },
+  container: { flexGrow: 1, padding: spacing.md, paddingBottom: 50 },
   header: { fontSize: 28, fontWeight: 'bold', marginBottom: spacing.lg, textAlign: 'center' },
   label: { fontSize: 14, fontWeight: '600', marginBottom: spacing.sm, marginTop: spacing.md },
   input: { height: 50, borderWidth: 1, borderRadius: 8, paddingHorizontal: 16, fontSize: 16 },

@@ -1,5 +1,4 @@
 // src/screens/DashboardScreen.tsx
-
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -14,10 +13,10 @@ import {
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
-// Hooks and services for our final architecture
+// Import hooks, services, types, and navigation
 import { useAuth } from '../services/authContext';
 import { useTheme } from '../theme/ThemeContext';
-import { logoutUser } from '../services/authService';
+import { logoutUser } from '../services/authService'; // Centralized logout function
 import { subscribeToMyJournalEntries } from '../services/journal';
 import { subscribeToSentCapsules, subscribeToReceivedCapsules } from '../services/capsules';
 import { RootStackParamList } from '../navigation/AppNavigation';
@@ -26,7 +25,7 @@ import { spacing } from '../theme/spacing';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Dashboard'>;
 
-// A custom, reusable button for the dashboard cards
+// Reusable ActionButton component for consistent styling within cards.
 const ActionButton = ({ title, onPress, colors, type = 'primary' }: any) => (
   <TouchableOpacity
     style={[
@@ -45,8 +44,7 @@ const ActionButton = ({ title, onPress, colors, type = 'primary' }: any) => (
   </TouchableOpacity>
 );
 
-
-// A custom, reusable card for the dashboard
+// Reusable Card component, memoized for performance.
 const Card = React.memo(({ title, children, buttonLabel, onPress, colors }: any) => (
   <View style={[styles.card, { backgroundColor: colors.card, shadowColor: colors.text }]}>
     <Text style={[styles.cardTitle, { color: colors.text }]}>{title}</Text>
@@ -59,28 +57,47 @@ const Card = React.memo(({ title, children, buttonLabel, onPress, colors }: any)
   </View>
 ));
 
-
 export default function DashboardScreen({ navigation }: Props) {
+  // Get theme colors for styling and screen dimensions for responsive layout.
   const { colors } = useTheme();
   const { width } = useWindowDimensions();
   const isLandscape = width > 700;
 
+  // Get the global user state.
   const { user, userProfile } = useAuth();
+  
+  // Local state to hold data from Firestore subscriptions.
   const [myEntries, setMyEntries] = useState<JournalEntry[]>([]);
   const [sentCapsules, setSentCapsules] = useState<Capsule[]>([]);
   const [receivedCapsules, setReceivedCapsules] = useState<Capsule[]>([]);
+  
+  // Smarter loading logic: tracks the initial load of each data stream.
   const [loading, setLoading] = useState(true);
+  const [journalsLoaded, setJournalsLoaded] = useState(false);
+  const [sentLoaded, setSentLoaded] = useState(false);
+  const [receivedLoaded, setReceivedLoaded] = useState(false);
 
+  // This effect sets up all necessary real-time listeners when the user logs in.
   useEffect(() => {
     if (!user) return;
 
-    setLoading(true);
-    const unsubEntries = subscribeToMyJournalEntries(user.uid, setMyEntries);
-    const unsubSentCaps = subscribeToSentCapsules(user.uid, setSentCapsules);
-    const unsubReceivedCaps = subscribeToReceivedCapsules(user.uid, setReceivedCapsules);
+    // Subscribes to the user's personal journal entries.
+    const unsubEntries = subscribeToMyJournalEntries(user.uid, (data) => {
+      setMyEntries(data);
+      setJournalsLoaded(true);
+    });
+    // Subscribes to the capsules sent by the user.
+    const unsubSentCaps = subscribeToSentCapsules(user.uid, (data) => {
+      setSentCapsules(data);
+      setSentLoaded(true);
+    });
+    // Subscribes to capsules received by the user.
+    const unsubReceivedCaps = subscribeToReceivedCapsules(user.uid, (data) => {
+      setReceivedCapsules(data);
+      setReceivedLoaded(true);
+    });
 
-    setTimeout(() => setLoading(false), 300);
-
+    // The returned function cleans up all listeners when the component unmounts.
     return () => {
       unsubEntries();
       unsubSentCaps();
@@ -88,6 +105,15 @@ export default function DashboardScreen({ navigation }: Props) {
     };
   }, [user]);
 
+  // This effect controls the main loading spinner.
+  // It only hides the spinner after the first batch of data from ALL listeners has arrived.
+  useEffect(() => {
+    if (journalsLoaded && sentLoaded && receivedLoaded) {
+      setLoading(false);
+    }
+  }, [journalsLoaded, sentLoaded, receivedLoaded]);
+
+  // Calls the centralized logout function from the auth service.
   const handleLogout = async () => {
     try {
       await logoutUser();
@@ -96,10 +122,12 @@ export default function DashboardScreen({ navigation }: Props) {
     }
   };
 
+  // Pre-calculates values for rendering to keep the return statement clean.
   const upcomingSent = sentCapsules.filter(c => c.deliveryDate > new Date() && !c.isDelivered);
   const nextCapsule = upcomingSent[0] ?? null;
   const newReceivedCount = receivedCapsules.filter(c => !c.isDelivered).length;
 
+  // Handles the conditional navigation for the "Next Sent Capsule" card.
   const handleNextCapsulePress = () => {
     if (nextCapsule) {
       navigation.navigate('CapsulesTimeline');
@@ -108,6 +136,7 @@ export default function DashboardScreen({ navigation }: Props) {
     }
   };
 
+  // Shows a loading spinner until the user's profile and initial data are loaded.
   if (loading || !user || !userProfile) {
     return (
       <SafeAreaView style={[styles.safe, { justifyContent: 'center', backgroundColor: colors.background }]}>
@@ -118,6 +147,7 @@ export default function DashboardScreen({ navigation }: Props) {
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
+      {/* HEADER: Displays a welcome message and provides access to Profile and Logout. */}
       <View style={[styles.headerRow, { borderBottomColor: colors.border, backgroundColor: colors.card }]}>
         <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
             <Text style={[styles.headerTitle, { color: colors.text }]}>
@@ -129,10 +159,12 @@ export default function DashboardScreen({ navigation }: Props) {
         </TouchableOpacity>
       </View>
       
+      {/* PANES: A two-column layout that adapts to a single column on smaller screens. */}
       <View style={[styles.panes, { flexDirection: isLandscape ? 'row' : 'column' }]}>
+        {/* LEFT PANE: Displays a summary of the user's recent journal entries. */}
         <View style={[styles.leftPane, { borderColor: colors.border, borderRightWidth: isLandscape ? 1 : 0 }]}>
           <FlatList
-            data={myEntries.slice(0, 10)}
+            data={myEntries.slice(0, 10)} // Only show the 10 most recent entries.
             keyExtractor={e => e.id}
             ListHeaderComponent={<Text style={[styles.paneTitle, {color: colors.text}]}>My Recent Entries</Text>}
             contentContainerStyle={{padding: spacing.sm}}
@@ -149,6 +181,7 @@ export default function DashboardScreen({ navigation }: Props) {
           </View>
         </View>
 
+        {/* RIGHT PANE: Contains cards that serve as navigation hubs to all other features. */}
         <View style={styles.rightPane}>
           <ScrollView contentContainerStyle={{ padding: spacing.md }}>
             <Card title="Your Inbox" buttonLabel="View Inbox" onPress={() => navigation.navigate('Inbox')} colors={colors}>
@@ -188,6 +221,7 @@ export default function DashboardScreen({ navigation }: Props) {
   );
 }
 
+// All styles are themed and use consistent spacing.
 const styles = StyleSheet.create({
   safe: { flex: 1 },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: spacing.md, borderBottomWidth: 1 },

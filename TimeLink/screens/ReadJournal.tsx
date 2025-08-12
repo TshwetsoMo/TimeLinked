@@ -9,13 +9,13 @@ import {
   ActivityIndicator,
   Alert,
   ScrollView,
-  Platform
+  Platform,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
-// Import our services, hooks, and types
+// Import services, hooks, and types
 import { RootStackParamList } from '../navigation/AppNavigation';
-import { useTheme } from '../theme/useTheme';
+import { useTheme } from '../theme/ThemeContext';
 import { getJournalEntry, deleteJournalEntry } from '../services/journal';
 import type { JournalEntry } from '../types';
 import { spacing } from '../theme/spacing';
@@ -23,20 +23,26 @@ import { spacing } from '../theme/spacing';
 type Props = NativeStackScreenProps<RootStackParamList, 'ReadJournal'>;
 
 export default function ReadJournalScreen({ route, navigation }: Props) {
+  // Get the entryId passed through navigation and the current theme colors.
   const { entryId } = route.params;
   const { colors } = useTheme();
 
+  // Local state to hold the fetched journal entry.
   const [entry, setEntry] = useState<JournalEntry | null>(null);
+  // Loading state to show a spinner during the data fetch.
   const [loading, setLoading] = useState(true);
 
+  // This effect fetches the specific journal entry from Firestore when the screen loads.
   useEffect(() => {
     const fetchEntry = async () => {
       setLoading(true);
       try {
+        // Calls the centralized service to get a single document by its ID.
         const fetchedEntry = await getJournalEntry(entryId);
         if (fetchedEntry) {
-          setEntry(fetchedEntry);
+          setEntry(fetchedEntry); // On success, save the data to state.
         } else {
+          // If the document doesn't exist (e.g., deleted), show an alert and go back.
           Alert.alert("Not Found", "This journal entry no longer exists.");
           navigation.goBack();
         }
@@ -44,13 +50,15 @@ export default function ReadJournalScreen({ route, navigation }: Props) {
         Alert.alert("Error", err.message);
         navigation.goBack();
       } finally {
-        setLoading(false);
+        setLoading(false); // Hide the spinner.
       }
     };
     fetchEntry();
-  }, [entryId, navigation]);
+  }, [entryId, navigation]); // This effect re-runs only if the `entryId` changes.
 
+  // Handles deleting the current entry.
   const handleDelete = () => {
+    // Displays a native confirmation dialog to prevent accidental deletion.
     Alert.alert(
       "Delete Entry",
       "Are you sure you want to permanently delete this journal entry?",
@@ -61,8 +69,9 @@ export default function ReadJournalScreen({ route, navigation }: Props) {
           style: "destructive", 
           onPress: async () => {
             try {
+              // Calls the centralized service to delete the document.
               await deleteJournalEntry(entryId);
-              navigation.goBack();
+              navigation.goBack(); // Navigate back on successful deletion.
             } catch (err: any) {
               Alert.alert("Error", err.message);
             }
@@ -72,6 +81,7 @@ export default function ReadJournalScreen({ route, navigation }: Props) {
     );
   };
 
+  // Renders a loading spinner until the entry data has been fetched.
   if (loading || !entry) {
     return (
       <SafeAreaView style={[styles.safe, { backgroundColor: colors.background, justifyContent: 'center' }]}>
@@ -80,8 +90,9 @@ export default function ReadJournalScreen({ route, navigation }: Props) {
     );
   }
 
+  // A helper object to provide user-friendly text for each visibility status.
   const visibilityInfo = {
-    private: { icon: '🔒', text: 'Private (Only you can see this)' },
+    private: { icon: '🔒', text: 'Private' },
     friends: { icon: '👥', text: 'Friends Only' },
     public: { icon: '🌍', text: 'Public' },
   };
@@ -93,10 +104,11 @@ export default function ReadJournalScreen({ route, navigation }: Props) {
           {entry.createdAt.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
         </Text>
 
+        {/* This box displays metadata about the entry: mood and visibility. */}
         <View style={[styles.metaBox, { borderColor: colors.border }]}>
             <View style={styles.metaItem}>
                 <Text style={[styles.metaLabel, { color: colors.textMuted }]}>MOOD</Text>
-                <Text style={styles.mood}>{'★'.repeat(entry.mood || 0)}{'☆'.repeat(5 - (entry.mood || 0))}</Text>
+                <Text style={[styles.mood, { color: colors.accent }]}>{'★'.repeat(entry.mood || 0)}{'☆'.repeat(5 - (entry.mood || 0))}</Text>
             </View>
             <View style={styles.metaItem}>
                 <Text style={[styles.metaLabel, { color: colors.textMuted }]}>VISIBILITY</Text>
@@ -104,11 +116,12 @@ export default function ReadJournalScreen({ route, navigation }: Props) {
             </View>
         </View>
 
+        {/* This displays the main content of the journal entry. */}
         <Text style={[styles.content, { color: colors.text }]}>{entry.content}</Text>
       </ScrollView>
 
-      {/* Action buttons at the bottom */}
-      <View style={[styles.actions, { borderTopColor: colors.border }]}>
+      {/* A persistent action bar at the bottom of the screen for editing and deleting. */}
+      <View style={[styles.actions, { borderTopColor: colors.border, backgroundColor: colors.card }]}>
         <TouchableOpacity 
             style={[styles.button, { backgroundColor: colors.primary }]} 
             onPress={() => navigation.navigate('CreateJournal', { entryId: entry.id })}
@@ -126,6 +139,7 @@ export default function ReadJournalScreen({ route, navigation }: Props) {
   );
 }
 
+// All styles are themed and use consistent spacing.
 const styles = StyleSheet.create({
   safe: { flex: 1 },
   container: { padding: spacing.lg, paddingBottom: 100 },
@@ -138,9 +152,9 @@ const styles = StyleSheet.create({
       borderBottomWidth: 1,
       marginBottom: spacing.lg,
   },
-  metaItem: { alignItems: 'center' },
+  metaItem: { alignItems: 'center', flex: 1 },
   metaLabel: { fontSize: 12, fontWeight: 'bold', marginBottom: spacing.xs },
-  mood: { fontSize: 20, color: '#FFC107' },
+  mood: { fontSize: 20 },
   visibility: { fontSize: 14, fontWeight: '500' },
   content: { fontSize: 18, lineHeight: 28, fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif' },
   actions: {
@@ -151,8 +165,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     padding: spacing.md,
+    paddingBottom: 30, // Extra padding for safe area
     borderTopWidth: 1,
-    backgroundColor: 'rgba(255,255,255,0.9)', // Or a themed color
   },
   button: {
     flex: 1,

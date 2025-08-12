@@ -13,10 +13,10 @@ import {
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
-// Import our new services, hooks, and types
+// Import services, hooks, and types
 import { RootStackParamList } from '../navigation/AppNavigation';
 import { useAuth } from '../services/authContext';
-import { useTheme } from '../theme/useTheme';
+import { useTheme } from '../theme/ThemeContext';
 import { subscribeToMyJournalEntries, deleteJournalEntry } from '../services/journal';
 import type { JournalEntry } from '../types';
 import { spacing } from '../theme/spacing';
@@ -24,33 +24,39 @@ import { spacing } from '../theme/spacing';
 type Props = NativeStackScreenProps<RootStackParamList, 'Journal'>;
 
 export default function JournalScreen({ navigation }: Props) {
+  // Get the global user object and the current theme.
   const { user } = useAuth();
   const { colors } = useTheme();
 
-  // State for the real-time entries and UI
+  // Local state to hold the unfiltered list of entries fetched from Firestore.
   const [entries, setEntries] = useState<JournalEntry[]>([]);
+  // Loading state to show a spinner during the initial data fetch.
   const [loading, setLoading] = useState(true);
   
-  // State for client-side filtering
+  // Local state to manage the text in the search input and the selected mood.
   const [searchQuery, setSearchQuery] = useState('');
   const [moodFilter, setMoodFilter] = useState<number | null>(null);
 
-  // ✅ Switched to a real-time subscription for a better UX
+  // This effect sets up the real-time data subscription.
   useEffect(() => {
-    if (!user) return;
+    if (!user) return; // Exit if the user is not yet loaded.
     
     setLoading(true);
-    // This listener will automatically update when data changes in Firestore.
+    // Calls the centralized service to listen for changes to the user's journal entries.
+    // The callback function updates the local state whenever data changes on the backend.
     const unsubscribe = subscribeToMyJournalEntries(user.uid, (fetchedEntries) => {
       setEntries(fetchedEntries);
-      setLoading(false);
+      setLoading(false); // Hide the spinner once the first batch of data arrives.
     });
 
-    // Cleanup the subscription when the component unmounts
+    // The returned function is a cleanup mechanism. It's called when the screen is
+    // unmounted to prevent memory leaks by closing the connection to Firestore.
     return () => unsubscribe();
   }, [user]);
 
-  // Memoize the filtered entries to prevent re-calculating on every render
+  // This function performs client-side filtering based on the search query and mood filter.
+  // `useMemo` is a performance optimization that ensures this filtering logic only re-runs
+  // when the source `entries` array or the filter values actually change.
   const filteredEntries = useMemo(() => {
     return entries.filter(entry => {
       const matchesSearch = entry.content.toLowerCase().includes(searchQuery.toLowerCase());
@@ -59,8 +65,9 @@ export default function JournalScreen({ navigation }: Props) {
     });
   }, [entries, searchQuery, moodFilter]);
 
+  // Handles deleting an entry.
   const handleDelete = (entryId: string) => {
-    // ✅ Add a confirmation alert before deleting
+    // Displays a native confirmation dialog to prevent accidental data loss.
     Alert.alert(
       "Delete Entry",
       "Are you sure you want to permanently delete this journal entry?",
@@ -69,12 +76,14 @@ export default function JournalScreen({ navigation }: Props) {
         { 
           text: "Delete", 
           style: "destructive", 
+          // If the user confirms, call the centralized `deleteJournalEntry` service.
           onPress: () => deleteJournalEntry(entryId).catch(err => Alert.alert("Error", err.message))
         }
       ]
     );
   };
 
+  // Defines how to render a single journal entry card in the FlatList.
   const renderEntry = ({ item }: { item: JournalEntry }) => (
     <TouchableOpacity
       style={[styles.card, { backgroundColor: colors.card, shadowColor: colors.text }]}
@@ -91,7 +100,7 @@ export default function JournalScreen({ navigation }: Props) {
             Mood: {'★'.repeat(item.mood)}{'☆'.repeat(5 - item.mood)}
          </Text>
       )}
-      <View style={styles.cardActions}>
+      <View style={[styles.cardActions, { borderTopColor: colors.border }]}>
         <TouchableOpacity onPress={() => navigation.navigate('CreateJournal', { entryId: item.id })}>
             <Text style={{ color: colors.primary, fontWeight: 'bold' }}>EDIT</Text>
         </TouchableOpacity>
@@ -102,6 +111,7 @@ export default function JournalScreen({ navigation }: Props) {
     </TouchableOpacity>
   );
 
+  // Renders a loading spinner during the initial data fetch.
   if (loading) {
     return (
       <SafeAreaView style={[styles.safe, { backgroundColor: colors.background, justifyContent: 'center' }]}>
@@ -112,11 +122,13 @@ export default function JournalScreen({ navigation }: Props) {
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
+      {/* FlatList is a high-performance component for rendering scrollable lists. */}
       <FlatList
         data={filteredEntries}
         keyExtractor={item => item.id}
         renderItem={renderEntry}
         contentContainerStyle={styles.listContainer}
+        // The ListHeaderComponent contains the UI that scrolls along with the list.
         ListHeaderComponent={
           <View>
             <Text style={[styles.header, { color: colors.text }]}>My Journal</Text>
@@ -127,9 +139,11 @@ export default function JournalScreen({ navigation }: Props) {
               value={searchQuery}
               onChangeText={setSearchQuery}
             />
-            {/* Mood Filter Component */}
+            {/* The Mood Filter UI can be added here. */}
           </View>
         }
+        // This component is displayed when the data list is empty.
+        // It provides helpful text to the user.
         ListEmptyComponent={
           <View style={styles.placeholderContainer}>
             <Text style={[styles.placeholderText, { color: colors.textMuted }]}>
@@ -139,17 +153,18 @@ export default function JournalScreen({ navigation }: Props) {
         }
       />
 
-      {/* ✅ Floating Action Button for creating a new entry */}
+      {/* A Floating Action Button (FAB) is a modern UI pattern for a primary screen action. */}
       <TouchableOpacity
-        style={[styles.fab, { backgroundColor: colors.primary }]}
+        style={[styles.fab, { backgroundColor: colors.primary, shadowColor: colors.text }]}
         onPress={() => navigation.navigate('CreateJournal', {})}
       >
-        <Text style={styles.fabIcon}>+</Text>
+        <Text style={[styles.fabIcon, { color: colors.card }]}>+</Text>
       </TouchableOpacity>
     </SafeAreaView>
   );
 }
 
+// All styles are themed and use consistent spacing.
 const styles = StyleSheet.create({
   safe: { flex: 1 },
   listContainer: { paddingHorizontal: spacing.md, paddingBottom: 80 },
@@ -167,7 +182,7 @@ const styles = StyleSheet.create({
   entryDate: { fontSize: 12, fontWeight: '600', marginBottom: spacing.sm, opacity: 0.7 },
   entryContent: { fontSize: 16, lineHeight: 22 },
   mood: { fontSize: 14, marginTop: spacing.sm, fontStyle: 'italic' },
-  cardActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: spacing.lg, borderTopWidth: 1, borderTopColor: '#eee', marginTop: spacing.md, paddingTop: spacing.md },
+  cardActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: spacing.lg, borderTopWidth: 1, marginTop: spacing.md, paddingTop: spacing.md },
   placeholderContainer: { marginTop: 100, alignItems: 'center' },
   placeholderText: { fontSize: 16, fontStyle: 'italic' },
   fab: {
@@ -184,5 +199,5 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 4,
   },
-  fabIcon: { fontSize: 32, color: 'white', fontWeight: '300' },
+  fabIcon: { fontSize: 32, fontWeight: '300' },
 });

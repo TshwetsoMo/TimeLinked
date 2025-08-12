@@ -14,39 +14,45 @@ import {
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
-// Import our new services, hooks, and types
+// Import services, hooks, and types
 import { RootStackParamList } from '../navigation/AppNavigation';
-import { useTheme } from '../theme/ThemeContext'; // Ensure this points to the correct context file
+import { useTheme } from '../theme/ThemeContext';
 import { spacing } from '../theme/spacing';
-// ✅ FIX: Corrected the import path to point to the finalized auth.ts service.
-import { registerUser } from '../services/authService'; 
+import { registerUser } from '../services/authService'; // Centralized registration function
 
 type Props = NativeStackScreenProps<RootStackParamList, 'SignUp'>;
 
 export default function SignUpScreen({ navigation }: Props) {
+  // Use the theme hook to get current colors for styling.
   const { colors } = useTheme();
 
+  // Local state for the registration form.
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  // Loading state to disable the form during the async registration operation.
   const [loading, setLoading] = useState(false);
 
+  // Main function to handle the registration process.
   const handleSignUp = async () => {
-    // Basic client-side validation
+    // 1. Basic client-side validation.
     if (!name.trim() || !email.trim() || !password) {
       return Alert.alert('Missing Information', 'Please fill out all fields to create your account.');
     }
     
     setLoading(true);
     try {
-      // ONE clean call to our auth service.
+      // 2. A single, clean call to the centralized `registerUser` service.
+      // This service handles the two-step process of creating the Auth user
+      // and their Firestore profile document.
       await registerUser(email.trim(), password, name.trim());
       
-      // Navigation is now handled by the AuthContext listener.
+      // 3. On success, we do nothing. The global AuthProvider will detect
+      // the new user state and handle the navigation to the Dashboard automatically.
 
     } catch (error: any) {
-      // The auth service throws an error, and we catch it here to show the UI.
-      let errorMessage = 'An unexpected error occurred. Please try again.';
+      // 4. If the service throws an error, catch it and show a user-friendly message.
+      let errorMessage = 'An unexpected error occurred.';
       if (error.code === 'auth/email-already-in-use') {
         errorMessage = 'This email address is already registered. Please log in.';
       } else if (error.code === 'auth/invalid-email') {
@@ -56,6 +62,7 @@ export default function SignUpScreen({ navigation }: Props) {
       }
       Alert.alert('Sign-Up Failed', errorMessage);
     } finally {
+      // 5. Always set loading to false to re-enable the form.
       setLoading(false);
     }
   };
@@ -71,6 +78,7 @@ export default function SignUpScreen({ navigation }: Props) {
           Join the TimeLink community.
         </Text>
 
+        {/* Controlled input for the user's name. */}
         <TextInput
           style={[styles.input, { borderColor: colors.border, backgroundColor: colors.card, color: colors.text }]}
           placeholder="Your Name"
@@ -81,6 +89,7 @@ export default function SignUpScreen({ navigation }: Props) {
           editable={!loading}
         />
 
+        {/* Controlled input for the user's email. */}
         <TextInput
           style={[styles.input, { borderColor: colors.border, backgroundColor: colors.card, color: colors.text }]}
           placeholder="Email Address"
@@ -92,6 +101,7 @@ export default function SignUpScreen({ navigation }: Props) {
           editable={!loading}
         />
 
+        {/* Controlled input for the user's password. */}
         <TextInput
           style={[styles.input, { borderColor: colors.border, backgroundColor: colors.card, color: colors.text }]}
           placeholder="Password (min. 6 characters)"
@@ -102,6 +112,7 @@ export default function SignUpScreen({ navigation }: Props) {
           editable={!loading}
         />
 
+        {/* The main submission button. Shows a loading spinner when active. */}
         <TouchableOpacity
           style={[styles.button, { backgroundColor: colors.primary }]}
           onPress={handleSignUp}
@@ -114,6 +125,7 @@ export default function SignUpScreen({ navigation }: Props) {
           )}
         </TouchableOpacity>
 
+        {/* A link to navigate to the Login screen for users who already have an account. */}
         <TouchableOpacity onPress={() => navigation.navigate('Login')} disabled={loading}>
           <Text style={[styles.link, { color: colors.textMuted }]}>
             Already have an account?{' '}
@@ -125,6 +137,7 @@ export default function SignUpScreen({ navigation }: Props) {
   );
 }
 
+// All styles are themed and use consistent spacing.
 const styles = StyleSheet.create({
   safe: { flex: 1 },
   container: {
@@ -136,7 +149,6 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: 'bold',
     textAlign: 'center',
-    // ✅ FIX: Removed hardcoded color to allow for theming.
   },
   subHeader: {
     fontSize: 16,
