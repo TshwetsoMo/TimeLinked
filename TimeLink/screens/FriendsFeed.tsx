@@ -1,4 +1,4 @@
-// src/screens/FriendsFeedScreen.tsx
+/// src/screens/FriendsFeedScreen.tsx
 import React, { useState, useEffect } from 'react';
 import {
   SafeAreaView,
@@ -15,45 +15,39 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 // Import our services, hooks, and types
 import { RootStackParamList } from '../navigation/AppNavigation';
 import { useAuth } from '../services/authContext';
-import { useTheme } from '../theme/useTheme';
+import { useTheme } from '../theme/ThemeContext';
 import { subscribeToConnections, getUserProfile } from '../services/users';
 import { subscribeToFriendsFeed } from '../services/journal';
 import type { JournalEntry, UserProfile } from '../types';
 import { spacing } from '../theme/spacing';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'FriendsFeed'>; // Add 'FriendsFeed' to your RootStackParamList
+type Props = NativeStackScreenProps<RootStackParamList, 'FriendsFeed'>;
 
 export default function FriendsFeedScreen({ navigation }: Props) {
   const { user } = useAuth();
   const { colors } = useTheme();
 
   const [feedEntries, setFeedEntries] = useState<JournalEntry[]>([]);
-  // State to cache author profile info
   const [authors, setAuthors] = useState<{ [id: string]: UserProfile }>({});
   const [loading, setLoading] = useState(true);
 
-  // This complex effect handles the two-step data fetching process.
   useEffect(() => {
     if (!user) return;
 
     setLoading(true);
 
-    // Step 1: Subscribe to the user's connections to get their friend IDs.
     const unsubConnections = subscribeToConnections(user.uid, (connections) => {
       const friendIds = connections.map(c => c.id);
 
       if (friendIds.length === 0) {
-        // If the user has no friends, the feed will be empty.
         setFeedEntries([]);
         setLoading(false);
         return;
       }
 
-      // Step 2: Use the friend IDs to subscribe to the friends feed.
       const unsubFeed = subscribeToFriendsFeed(friendIds, (entries) => {
         setFeedEntries(entries);
         
-        // Step 3: Fetch profiles for any new authors in the feed.
         const authorIds = new Set(entries.map(e => e.userId));
         authorIds.forEach(id => {
           if (!authors[id]) {
@@ -67,11 +61,9 @@ export default function FriendsFeedScreen({ navigation }: Props) {
         setLoading(false);
       });
 
-      // Return the cleanup function for the feed subscription
       return () => unsubFeed();
     });
 
-    // Return the cleanup function for the connections subscription
     return () => unsubConnections();
   }, [user]);
 
@@ -80,7 +72,7 @@ export default function FriendsFeedScreen({ navigation }: Props) {
 
     return (
       <View style={[styles.feedCard, { backgroundColor: colors.card, shadowColor: colors.text }]}>
-        <View style={styles.cardHeader}>
+        <View style={[styles.cardHeader, { borderBottomColor: colors.border }]}>
           <Image
             source={author?.photoURL ? { uri: author.photoURL } : require('../assets/logo.png')}
             style={styles.authorImage}
@@ -156,7 +148,7 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.md,
     marginBottom: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    // ✅ THEME FIX: Replaced hardcoded color with theme color
   },
   authorImage: {
     width: 40,

@@ -16,19 +16,17 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 // Import our services, hooks, and types
 import { RootStackParamList } from '../navigation/AppNavigation';
 import { useAuth } from '../services/authContext';
-import { useTheme } from '../theme/useTheme';
+import { useTheme } from '../theme/ThemeContext';
 import { subscribeToConnections, removeConnection } from '../services/users';
 import type { UserProfile } from '../types';
 import { spacing } from '../theme/spacing';
 
-// Define the route params for this screen
 type Props = NativeStackScreenProps<RootStackParamList, 'FriendsList'>;
 
 export default function FriendsListScreen({ route, navigation }: Props) {
   const { user } = useAuth();
   const { colors } = useTheme();
 
-  // Check if the screen is being used as a recipient picker
   const asPicker = route.params?.asPicker || false;
 
   const [connections, setConnections] = useState<UserProfile[]>([]);
@@ -38,13 +36,11 @@ export default function FriendsListScreen({ route, navigation }: Props) {
     if (!user) return;
 
     setLoading(true);
-    // Subscribe to the user's connections for real-time updates
     const unsubscribe = subscribeToConnections(user.uid, (fetchedConnections) => {
       setConnections(fetchedConnections);
       setLoading(false);
     });
 
-    // Cleanup subscription on unmount
     return () => unsubscribe();
   }, [user]);
   
@@ -67,22 +63,20 @@ export default function FriendsListScreen({ route, navigation }: Props) {
   };
   
   const handleSelectFriend = (friend: UserProfile) => {
-    // If in picker mode, navigate back with the selected friend's data
     if (asPicker) {
       navigation.navigate('CreateCapsule', { selectedRecipient: friend });
     }
-    // If not in picker mode, you could navigate to their profile, for example.
-    // For now, we do nothing.
+    // In the future, you could navigate to a friend's profile from here:
+    // else { navigation.navigate('UserProfile', { userId: friend.id }); }
   };
 
   const renderConnection = ({ item }: { item: UserProfile }) => (
     <TouchableOpacity
       style={[styles.friendCard, { backgroundColor: colors.card, shadowColor: colors.text }]}
       onPress={() => handleSelectFriend(item)}
-      disabled={!asPicker} // Only allow presses in picker mode
     >
       <Image
-        source={item.photoURL ? { uri: item.photoURL } : require('../assets/logo.png')} // Fallback image
+        source={item.photoURL ? { uri: item.photoURL } : require('../assets/logo.png')}
         style={styles.profileImage}
       />
       <View style={styles.friendInfo}>
@@ -91,7 +85,7 @@ export default function FriendsListScreen({ route, navigation }: Props) {
       </View>
       {!asPicker && (
         <TouchableOpacity style={styles.removeButton} onPress={() => handleRemoveFriend(item)}>
-          <Text style={styles.removeButtonText}>Remove</Text>
+          <Text style={[styles.removeButtonText, { color: colors.notification }]}>Remove</Text>
         </TouchableOpacity>
       )}
     </TouchableOpacity>
@@ -107,7 +101,7 @@ export default function FriendsListScreen({ route, navigation }: Props) {
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
-        <View style={styles.headerContainer}>
+        <View style={[styles.headerContainer, { borderBottomColor: colors.border }]}>
             <Text style={[styles.header, { color: colors.text }]}>
                 {asPicker ? 'Select a Recipient' : 'Your Connections'}
             </Text>
@@ -126,11 +120,11 @@ export default function FriendsListScreen({ route, navigation }: Props) {
             ListEmptyComponent={
                 <View style={styles.placeholderContainer}>
                     <Text style={[styles.placeholderText, { color: colors.textMuted }]}>
-                    You don't have any connections yet.
+                    You haven't added any connections yet.
                     </Text>
                     {!asPicker && (
                         <TouchableOpacity onPress={() => navigation.navigate('SearchUsers')}>
-                            <Text style={[styles.link, { color: colors.primary }]}>Find some friends!</Text>
+                            <Text style={[styles.link, { color: colors.primary }]}>Find Friends</Text>
                         </TouchableOpacity>
                     )}
                 </View>
@@ -145,7 +139,6 @@ const styles = StyleSheet.create({
   headerContainer: {
     padding: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -184,7 +177,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sm,
   },
   removeButtonText: {
-    color: '#D32F2F',
+    // ✅ THEME FIX: Color is now dynamic
     fontWeight: 'bold',
   },
   placeholderContainer: {

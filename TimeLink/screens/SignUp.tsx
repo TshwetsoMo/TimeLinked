@@ -16,9 +16,10 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 // Import our new services, hooks, and types
 import { RootStackParamList } from '../navigation/AppNavigation';
-import { useTheme } from '../theme/useTheme';
+import { useTheme } from '../theme/ThemeContext'; // Ensure this points to the correct context file
 import { spacing } from '../theme/spacing';
-import { registerUser } from '../services/authService'; // ✅ Use the abstracted service function
+// ✅ FIX: Corrected the import path to point to the finalized auth.ts service.
+import { registerUser } from '../services/authService'; 
 
 type Props = NativeStackScreenProps<RootStackParamList, 'SignUp'>;
 
@@ -30,9 +31,6 @@ export default function SignUpScreen({ navigation }: Props) {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // The automatic redirect is now handled globally by the AuthProvider,
-  // so we no longer need the useEffect hook here.
-
   const handleSignUp = async () => {
     // Basic client-side validation
     if (!name.trim() || !email.trim() || !password) {
@@ -41,12 +39,10 @@ export default function SignUpScreen({ navigation }: Props) {
     
     setLoading(true);
     try {
-      // ✅ ONE clean call to our auth service.
-      // This function handles creating the auth user AND their Firestore profile.
+      // ONE clean call to our auth service.
       await registerUser(email.trim(), password, name.trim());
       
-      // Navigation is now handled by the AuthContext listener, so we don't
-      // need to navigate here. The app will automatically move to the Dashboard.
+      // Navigation is now handled by the AuthContext listener.
 
     } catch (error: any) {
       // The auth service throws an error, and we catch it here to show the UI.
@@ -140,7 +136,7 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: 'bold',
     textAlign: 'center',
-    color: '#212121',
+    // ✅ FIX: Removed hardcoded color to allow for theming.
   },
   subHeader: {
     fontSize: 16,

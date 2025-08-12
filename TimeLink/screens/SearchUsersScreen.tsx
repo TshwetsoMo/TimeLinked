@@ -1,5 +1,5 @@
 // src/screens/SearchUsersScreen.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   SafeAreaView,
   View,
@@ -11,18 +11,19 @@ import {
   Alert,
   FlatList,
   Keyboard,
+  Image,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 // Import our services, hooks, and types
 import { RootStackParamList } from '../navigation/AppNavigation';
 import { useAuth } from '../services/authContext';
-import { useTheme } from '../theme/useTheme';
-import { searchUsersByEmail, addConnection } from '../services/users';
+import { useTheme } from '../theme/ThemeContext';
+import { searchUsersByEmail, addConnection, subscribeToConnections } from '../services/users';
 import type { UserProfile } from '../types';
 import { spacing } from '../theme/spacing';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'SearchUsers'>; // Add 'SearchUsers' to your RootStackParamList
+type Props = NativeStackScreenProps<RootStackParamList, 'SearchUsers'>;
 
 export default function SearchUsersScreen({ navigation }: Props) {
   const { user } = useAuth();
@@ -31,20 +32,32 @@ export default function SearchUsersScreen({ navigation }: Props) {
   const [searchEmail, setSearchEmail] = useState('');
   const [searchResults, setSearchResults] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(false);
-  const [hasSearched, setHasSearched] = useState(false); // To know when to show "No results"
+  const [hasSearched, setHasSearched] = useState(false);
   
-  // State to track which users have been successfully added in this session
-  const [addedFriendIds, setAddedFriendIds] = useState<string[]>([]);
+  // ✅ NEW: State to hold the user's current connections
+  const [myConnections, setMyConnections] = useState<string[]>([]);
+  const [addedThisSession, setAddedThisSession] = useState<string[]>([]);
+
+  // ✅ NEW: Subscribe to current connections to know who is already a friend.
+  useEffect(() => {
+    if (!user) return;
+    const unsubscribe = subscribeToConnections(user.uid, (connections) => {
+      const connectionIds = connections.map(c => c.id);
+      setMyConnections(connectionIds);
+    });
+    return () => unsubscribe();
+  }, [user]);
+
 
   const handleSearch = async () => {
     if (!user || !searchEmail.trim()) {
       return Alert.alert("Input Required", "Please enter an email address to search.");
     }
 
-    Keyboard.dismiss(); // Hide the keyboard
+    Keyboard.dismiss();
     setLoading(true);
     setHasSearched(true);
-    setSearchResults([]); // Clear previous results
+    setSearchResults([]);
 
     try {
       const results = await searchUsersByEmail(searchEmail.trim(), user.uid);
@@ -62,31 +75,43 @@ export default function SearchUsersScreen({ navigation }: Props) {
     try {
       await addConnection(user.uid, friend.id);
       Alert.alert("Success!", `You are now connected with ${friend.displayName}.`);
-      // Add the friend's ID to the list of those added in this session
-      setAddedFriendIds(prev => [...prev, friend.id]);
+      setAddedThisSession(prev => [...prev, friend.id]);
     } catch (error: any) {
+      // The error alert from before is already perfect.
       Alert.alert("Error", `Could not connect with ${friend.displayName}. Please try again.`);
     }
   };
 
   const renderSearchResult = ({ item }: { item: UserProfile }) => {
-    const isAlreadyAdded = addedFriendIds.includes(item.id);
+    // ✅ NEW: Determine the status of the button
+    const isAlreadyConnected = myConnections.includes(item.id);
+    const wasAddedThisSession = addedThisSession.includes(item.id);
+    const isDisabled = isAlreadyConnected || wasAddedThisSession;
+
+    let buttonText = 'Add';
+    if (isAlreadyConnected) buttonText = 'Connected';
+    if (wasAddedThisSession) buttonText = 'Added';
+
     return (
       <View style={[styles.resultCard, { backgroundColor: colors.card, shadowColor: colors.text }]}>
-        <View>
+        <Image 
+            source={item.photoURL ? { uri: item.photoURL } : require('../assets/logo.png')}
+            style={styles.profileImage}
+        />
+        <View style={styles.userInfo}>
             <Text style={[styles.resultName, { color: colors.text }]}>{item.displayName}</Text>
             <Text style={[styles.resultEmail, { color: colors.textMuted }]}>{item.email}</Text>
         </View>
         <TouchableOpacity
           style={[
             styles.addButton,
-            { backgroundColor: isAlreadyAdded ? colors.border : colors.primary }
+            { backgroundColor: isDisabled ? colors.border : colors.primary }
           ]}
           onPress={() => handleAddFriend(item)}
-          disabled={isAlreadyAdded}
+          disabled={isDisabled}
         >
-          <Text style={[styles.addButtonText, { color: isAlreadyAdded ? colors.textMuted : colors.card }]}>
-            {isAlreadyAdded ? 'Added' : 'Add'}
+          <Text style={[styles.addButtonText, { color: isDisabled ? colors.textMuted : colors.card }]}>
+            {buttonText}
           </Text>
         </TouchableOpacity>
       </View>
@@ -145,31 +170,12 @@ const styles = StyleSheet.create({
   header: { fontSize: 28, fontWeight: 'bold', marginBottom: spacing.sm },
   subHeader: { fontSize: 16, marginBottom: spacing.lg },
   searchContainer: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.md },
-  input: {
-    height: 50,
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    fontSize: 16,
-    flex: 1,
-  },
-  searchButton: {
-    height: 50,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: spacing.lg,
-  },
-  searchButtonText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  resultsList: {
-    marginTop: spacing.lg,
-  },
+  input: { height: 50, borderWidth: 1, borderRadius: 8, paddingHorizontal: 16, fontSize: 16, flex: 1 },
+  searchButton: { height: 50, borderRadius: 8, justifyContent: 'center', alignItems: 'center', paddingHorizontal: spacing.lg },
+  searchButtonText: { fontSize: 18, fontWeight: 'bold' },
+  resultsList: { marginTop: spacing.lg },
   resultCard: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     padding: spacing.md,
     borderRadius: 12,
@@ -179,28 +185,12 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-  resultName: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  resultEmail: {
-    fontSize: 14,
-  },
-  addButton: {
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    borderRadius: 6,
-  },
-  addButtonText: {
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  placeholderContainer: {
-    marginTop: 100,
-    alignItems: 'center',
-  },
-  placeholderText: {
-    fontSize: 16,
-    fontStyle: 'italic',
-  },
+  profileImage: { width: 40, height: 40, borderRadius: 20, marginRight: spacing.md },
+  userInfo: { flex: 1 },
+  resultName: { fontSize: 16, fontWeight: 'bold' },
+  resultEmail: { fontSize: 14 },
+  addButton: { paddingVertical: spacing.sm, paddingHorizontal: spacing.md, borderRadius: 6, minWidth: 70, alignItems: 'center' },
+  addButtonText: { fontSize: 14, fontWeight: 'bold' },
+  placeholderContainer: { marginTop: 100, alignItems: 'center' },
+  placeholderText: { fontSize: 16, fontStyle: 'italic' },
 });

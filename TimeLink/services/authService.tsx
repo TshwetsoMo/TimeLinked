@@ -12,8 +12,6 @@ import { auth, db } from './firebase';
 
 /**
  * ✅ LOGIN: Signs in an existing user with their email and password.
- * @param email The user's email address.
- * @param password The user's password.
  */
 export async function loginUser(email: string, password: string) {
   try {
@@ -22,33 +20,26 @@ export async function loginUser(email: string, password: string) {
     return userCredential;
   } catch (error: any) {
     console.error("Error logging in:", error.code, error.message);
-    // Re-throw the error so the UI layer can handle it (e.g., show an alert)
     throw error;
   }
 };
 
 /**
  * ✅ REGISTER: Creates a new user with email and password, and sets up their profile.
- * @param email The new user's email address.
- * @param password The new user's chosen password.
- * @param displayName The new user's chosen display name.
  */
 export async function registerUser(email: string, password: string, displayName: string) {
   try {
-    // Step 1: Create the user in Firebase Authentication
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
 
-    // Step 2: Update the new user's Auth profile with their display name
     await updateProfile(user, { displayName });
 
-    // Step 3: Create a corresponding user document in Firestore
     const userDocRef = doc(db, "users", user.uid);
     await setDoc(userDocRef, {
       email: user.email,
       displayName: displayName,
-      createdAt: Timestamp.now(), // Use Firestore's timestamp for consistency
-      photoURL: null, // Initialize photoURL as null
+      createdAt: Timestamp.now(),
+      photoURL: null,
     });
 
     console.log("User registered and saved to Firestore:", user.uid);
@@ -74,22 +65,45 @@ export async function logoutUser() {
 
 /**
  * ✅ UPDATE PROFILE: Updates a user's profile information in both Auth and Firestore.
+ * This version is robust and prevents 'undefined' values from being sent to Firestore.
  * @param userId The UID of the user to update.
- * @param data An object with the data to update (e.g., { displayName: 'New Name' }).
+ * @param data An object with the data to update.
  */
-export async function updateUserProfile(userId: string, data: { displayName?: string; photoURL?: string }) {
+export async function updateUserProfile(userId: string, data: { displayName?: string; photoURL?: string | null }) {
     const currentUser = auth.currentUser;
     if (!currentUser || currentUser.uid !== userId) {
         throw new Error("You can only update your own profile.");
     }
 
     try {
-        // Update the Firebase Auth profile
-        await updateProfile(currentUser, data);
+        // Step 1: Update the Firebase Auth profile.
+        // The `updateProfile` function correctly handles `undefined` for fields that aren't being changed.
+        await updateProfile(currentUser, {
+            displayName: data.displayName,
+            photoURL: data.photoURL || undefined, // Auth needs undefined if photoURL is null
+        });
 
-        // Update the Firestore user document
+        // ✅ FIX IS HERE: Create a "clean" payload for Firestore that excludes 'undefined'.
+        const firestorePayload: { [key: string]: any } = {};
+
+        // Only add displayName to the payload if it's actually provided.
+        if (data.displayName !== undefined) {
+            firestorePayload.displayName = data.displayName;
+        }
+
+        // Only add photoURL to the payload if it's provided.
+        // Firestore can handle `null` perfectly fine, so we pass it through.
+        if (data.photoURL !== undefined) {
+            firestorePayload.photoURL = data.photoURL;
+        }
+
+        // Step 2: Update the Firestore user document with the clean payload.
         const userDocRef = doc(db, "users", userId);
-        await updateDoc(userDoc.ref, data);
+        
+        // This check ensures we don't send an empty update if the data object was malformed.
+        if (Object.keys(firestorePayload).length > 0) {
+            await updateDoc(userDocRef, firestorePayload);
+        }
 
         console.log("User profile updated successfully for:", userId);
     } catch (error: any) {

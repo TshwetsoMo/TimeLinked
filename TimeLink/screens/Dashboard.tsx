@@ -1,4 +1,5 @@
 // src/screens/DashboardScreen.tsx
+
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -15,8 +16,8 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 // Hooks and services for our final architecture
 import { useAuth } from '../services/authContext';
-import { useTheme } from '../theme/useTheme';
-import { logoutUser } from '../services/authService'; 
+import { useTheme } from '../theme/ThemeContext';
+import { logoutUser } from '../services/authService';
 import { subscribeToMyJournalEntries } from '../services/journal';
 import { subscribeToSentCapsules, subscribeToReceivedCapsules } from '../services/capsules';
 import { RootStackParamList } from '../navigation/AppNavigation';
@@ -99,14 +100,11 @@ export default function DashboardScreen({ navigation }: Props) {
   const nextCapsule = upcomingSent[0] ?? null;
   const newReceivedCount = receivedCapsules.filter(c => !c.isDelivered).length;
 
-  // ✅ FIX: Create a handler function for the conditional navigation.
   const handleNextCapsulePress = () => {
     if (nextCapsule) {
-      // This path is now type-safe because the argument is a literal string.
       navigation.navigate('CapsulesTimeline');
     } else {
-      // This path is also type-safe.
-      navigation.navigate('CreateCapsule', {}); // Pass empty params for routes that might expect them.
+      navigation.navigate('CreateCapsule', {});
     }
   };
 
@@ -120,7 +118,6 @@ export default function DashboardScreen({ navigation }: Props) {
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
-      {/* Header */}
       <View style={[styles.headerRow, { borderBottomColor: colors.border, backgroundColor: colors.card }]}>
         <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
             <Text style={[styles.headerTitle, { color: colors.text }]}>
@@ -133,27 +130,25 @@ export default function DashboardScreen({ navigation }: Props) {
       </View>
       
       <View style={[styles.panes, { flexDirection: isLandscape ? 'row' : 'column' }]}>
-        {/* LEFT PANE */}
         <View style={[styles.leftPane, { borderColor: colors.border, borderRightWidth: isLandscape ? 1 : 0 }]}>
           <FlatList
-            data={myEntries}
+            data={myEntries.slice(0, 10)}
             keyExtractor={e => e.id}
             ListHeaderComponent={<Text style={[styles.paneTitle, {color: colors.text}]}>My Recent Entries</Text>}
             contentContainerStyle={{padding: spacing.sm}}
             renderItem={({ item }) => (
-              <TouchableOpacity style={[styles.listItem, {backgroundColor: colors.card}]} onPress={() => navigation.navigate('ReadJournal', { entryId: item.id })}>
+              <TouchableOpacity style={[styles.listItem, {backgroundColor: colors.card, shadowColor: colors.text}]} onPress={() => navigation.navigate('ReadJournal', { entryId: item.id })}>
                 <Text numberOfLines={2} style={[styles.listItemText, { color: colors.text }]}>{item.content}</Text>
                 <Text style={[styles.listItemDate, { color: colors.textMuted }]}>{item.createdAt.toLocaleDateString()}</Text>
               </TouchableOpacity>
             )}
-            ListEmptyComponent={<Text style={styles.placeholder}>No journal entries yet.</Text>}
+            ListEmptyComponent={<Text style={[styles.placeholder, {color: colors.textMuted}]}>No journal entries yet.</Text>}
           />
           <View style={{ padding: spacing.md, borderTopWidth: 1, borderColor: colors.border }}>
             <ActionButton title="Write a New Entry" onPress={() => navigation.navigate('CreateJournal', {})} colors={colors} />
           </View>
         </View>
 
-        {/* RIGHT PANE */}
         <View style={styles.rightPane}>
           <ScrollView contentContainerStyle={{ padding: spacing.md }}>
             <Card title="Your Inbox" buttonLabel="View Inbox" onPress={() => navigation.navigate('Inbox')} colors={colors}>
@@ -165,7 +160,6 @@ export default function DashboardScreen({ navigation }: Props) {
             <Card
               title="Next Sent Capsule"
               buttonLabel={nextCapsule ? 'View Sent Timeline' : 'Schedule a Capsule'}
-              // ✅ FIX: Call the new handler function here.
               onPress={handleNextCapsulePress}
               colors={colors}
             >
@@ -205,7 +199,7 @@ const styles = StyleSheet.create({
   listItem: { padding: spacing.md, borderRadius: 8, marginBottom: spacing.sm, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2, elevation: 1 },
   listItemText: { fontSize: 14, lineHeight: 20 },
   listItemDate: { fontSize: 12, opacity: 0.7, marginTop: spacing.sm },
-  placeholder: { fontStyle: 'italic', textAlign: 'center', padding: spacing.md, color: '#777' },
+  placeholder: { fontStyle: 'italic', textAlign: 'center', padding: spacing.md },
   card: { padding: spacing.md, marginBottom: spacing.md, borderRadius: 12, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 3, elevation: 2 },
   cardTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: spacing.sm },
   actionButton: { borderRadius: 8, paddingVertical: 12, alignItems: 'center' },

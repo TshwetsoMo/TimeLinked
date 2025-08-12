@@ -19,34 +19,30 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 // Import our new services, hooks, and types
 import { RootStackParamList } from '../navigation/AppNavigation';
 import { useAuth } from '../services/authContext';
-import { useTheme } from '../theme/useTheme';
+import { useTheme } from '../theme/ThemeContext';
 import { createCapsule, updateCapsule, getCapsule } from '../services/capsules';
 import { getUserProfile } from '../services/users';
 import type { UserProfile } from '../types';
 import { spacing } from '../theme/spacing';
 
-// Define the route params, including the new `selectedRecipient`
 type Props = NativeStackScreenProps<RootStackParamList, 'CreateCapsule'>;
 
 export default function CreateCapsuleScreen({ route, navigation }: Props) {
   const { user } = useAuth();
   const { colors } = useTheme();
   
-  // Get capsuleId (for editing) and selectedRecipient (from the picker)
   const { capsuleId, selectedRecipient } = route.params || {};
 
   // State
   const [title, setTitle] = useState('');
   const [message, setMessage] = useState('');
-  const [date, setDate] = useState(new Date(new Date().setHours(new Date().getHours() + 1))); // Default to 1 hour in the future
+  const [date, setDate] = useState(new Date(new Date().setHours(new Date().getHours() + 1)));
   const [showPicker, setShowPicker] = useState(false);
-  const [loading, setLoading] = useState(false); // For fetching initial data on edit
-  const [saving, setSaving] = useState(false); // For the submission process
-
-  // ✅ State now holds the full UserProfile object of the recipient
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [recipient, setRecipient] = useState<UserProfile | null>(null);
 
-  // ✅ Effect to handle when a recipient is selected from the FriendsListScreen
+  // Effect to handle when a recipient is selected from the FriendsListScreen
   useEffect(() => {
     if (selectedRecipient) {
       setRecipient(selectedRecipient);
@@ -64,7 +60,6 @@ export default function CreateCapsuleScreen({ route, navigation }: Props) {
             setTitle(capsule.title || '');
             setMessage(capsule.message);
             setDate(capsule.deliveryDate);
-            // Also fetch the recipient's profile to display their name
             const recipientProfile = await getUserProfile(capsule.recipientId);
             setRecipient(recipientProfile);
           } else {
@@ -85,7 +80,6 @@ export default function CreateCapsuleScreen({ route, navigation }: Props) {
   const onDateChange = (_event: any, selectedDate?: Date) => {
     const currentDate = selectedDate || date;
     setShowPicker(Platform.OS === 'ios');
-    // Ensure the selected date is in the future
     if (currentDate < new Date()) {
       Alert.alert("Invalid Date", "Time capsules must be set for a future date and time.");
       return;
@@ -94,7 +88,7 @@ export default function CreateCapsuleScreen({ route, navigation }: Props) {
   };
 
   const handleSave = async () => {
-    if (!user) return; // Should never happen
+    if (!user) return;
     if (!recipient) {
       return Alert.alert('Recipient Required', 'Please select a friend to send this capsule to.');
     }
@@ -105,7 +99,6 @@ export default function CreateCapsuleScreen({ route, navigation }: Props) {
     setSaving(true);
     try {
       if (capsuleId) {
-        // Update existing capsule
         await updateCapsule(capsuleId, {
           title: title.trim(),
           recipientId: recipient.id,
@@ -114,7 +107,6 @@ export default function CreateCapsuleScreen({ route, navigation }: Props) {
         });
         Alert.alert('Success', 'Your time capsule has been updated!');
       } else {
-        // Create new capsule
         await createCapsule(user.uid, recipient.id, message.trim(), date, title.trim());
         Alert.alert('Success', 'Your time capsule has been scheduled!');
       }
@@ -142,8 +134,8 @@ export default function CreateCapsuleScreen({ route, navigation }: Props) {
             {capsuleId ? 'Edit Time Capsule' : 'New Time Capsule'}
           </Text>
 
-          {/* ✅ New Recipient Picker Button */}
           <Text style={[styles.label, { color: colors.text }]}>To:</Text>
+          {/* This is the navigation trigger */}
           <TouchableOpacity
             style={[styles.pickerButton, { backgroundColor: colors.card, borderColor: colors.border }]}
             onPress={() => navigation.navigate('FriendsList', { asPicker: true })}

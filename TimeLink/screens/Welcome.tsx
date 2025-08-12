@@ -1,4 +1,4 @@
-// src/screens/Welcome.tsx
+// src/screens/WelcomeScreen.tsx
 import React, { useEffect } from 'react';
 import {
   Text,
@@ -14,27 +14,29 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 // Import hooks and navigation types
 import { RootStackParamList } from '../navigation/AppNavigation';
 import { useAuth } from '../services/authContext';
-import { useTheme } from '../theme/useTheme';
+import { useTheme } from '../theme/ThemeContext';
 import { spacing } from '../theme/spacing';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Welcome'>;
 
 export default function WelcomeScreen({ navigation }: Props) {
-  // Use our custom hooks for auth state and theming
+  // Use custom hooks to get the global authentication state and current theme.
   const { user, loading } = useAuth();
   const { colors } = useTheme();
 
-  // This effect handles automatic redirection
+  // This useEffect hook runs whenever the auth state changes.
+  // It's the core of the automatic login feature.
   useEffect(() => {
-    // If the auth check is done and we have a user, don't stay here.
-    // Replace the current screen with the Dashboard so the user can't navigate back.
+    // If the initial authentication check is complete (`!loading`) and a user is logged in...
     if (!loading && user) {
+      // ...redirect the user to the main Dashboard.
+      // `navigation.replace` is used so the user cannot press the back button to return here.
       navigation.replace('Dashboard');
     }
   }, [user, loading, navigation]);
 
-  // While the initial auth check is happening, show a loading spinner.
-  // This prevents the welcome screen from flashing briefly for a logged-in user.
+  // While the AuthProvider is checking for a persisted session, show a loading spinner.
+  // This prevents the Welcome screen from briefly flashing for a returning user.
   if (loading) {
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -43,7 +45,7 @@ export default function WelcomeScreen({ navigation }: Props) {
     );
   }
 
-  // If we are not loading and there's no user, show the Welcome content.
+  // If not loading and no user is found, render the main welcome UI.
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
       <View style={styles.container}>
@@ -59,12 +61,14 @@ export default function WelcomeScreen({ navigation }: Props) {
         </Text>
 
         <View style={styles.buttonContainer}>
+          {/* Button to navigate to the account creation screen. */}
           <TouchableOpacity
             style={[styles.button, { backgroundColor: colors.primary }]}
             onPress={() => navigation.navigate('SignUp')}
           >
             <Text style={[styles.buttonText, { color: colors.card }]}>Get Started</Text>
           </TouchableOpacity>
+          {/* Button to navigate to the login screen for existing users. */}
           <TouchableOpacity
             style={[styles.button, { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
             onPress={() => navigation.navigate('Login')}
@@ -77,10 +81,9 @@ export default function WelcomeScreen({ navigation }: Props) {
   );
 }
 
+// All styles use the theme's spacing and color objects for consistency.
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-  },
+  safe: { flex: 1 },
   container: {
     flex: 1,
     justifyContent: 'center',
