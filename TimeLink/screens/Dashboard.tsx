@@ -8,18 +8,19 @@ import {
   SafeAreaView,
   ScrollView,
   ActivityIndicator,
+  useWindowDimensions, // Keep this for potential future responsive logic
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 // Import hooks, services, types, and navigation
 import { useAuth } from '../services/authContext';
 import { useTheme } from '../theme/ThemeContext';
-import { logoutUser } from '../services/authService';
-// ✅ We now only need the COUNT of journals, which is simpler.
+import { logoutUser } from '../services/authService'; 
 import { subscribeToMyJournalEntries } from '../services/journal';
 import { subscribeToSentCapsules, subscribeToReceivedCapsules } from '../services/capsules';
+import { subscribeToIncomingFriendRequests } from '../services/users';
 import { RootStackParamList } from '../navigation/AppNavigation';
-import type { JournalEntry, Capsule } from '../types';
+import type { Capsule } from '../types';
 import { spacing } from '../theme/spacing';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Dashboard'>;
@@ -60,26 +61,28 @@ export default function DashboardScreen({ navigation }: Props) {
   const { colors } = useTheme();
   const { user, userProfile } = useAuth();
   
-  // ✅ Simplified state. We only need the counts for the stats card.
+  // State for all data subscriptions needed on this screen.
   const [journalCount, setJournalCount] = useState(0);
   const [sentCapsules, setSentCapsules] = useState<Capsule[]>([]);
   const [receivedCapsules, setReceivedCapsules] = useState<Capsule[]>([]);
+  const [incomingRequestCount, setIncomingRequestCount] = useState(0);
   
+  // Robust loading logic that waits for all initial data to be fetched.
   const [loading, setLoading] = useState(true);
   const [journalsLoaded, setJournalsLoaded] = useState(false);
   const [sentLoaded, setSentLoaded] = useState(false);
   const [receivedLoaded, setReceivedLoaded] = useState(false);
+  const [requestsLoaded, setRequestsLoaded] = useState(false);
 
   useEffect(() => {
-    if (!user) return;
-
-    // The logic to handle logout navigation remains unchanged and correct.
+    if (!user) {
+      navigation.replace('Welcome');
+    }
   }, [user]);
 
   useEffect(() => {
     if (!user) return;
     
-    // ✅ Simplified subscriptions. For journals, we only need the length of the array.
     const unsubEntries = subscribeToMyJournalEntries(user.uid, (data) => {
       setJournalCount(data.length);
       setJournalsLoaded(true);
@@ -92,19 +95,24 @@ export default function DashboardScreen({ navigation }: Props) {
       setReceivedCapsules(data);
       setReceivedLoaded(true);
     });
+    const unsubRequests = subscribeToIncomingFriendRequests(user.uid, (requests) => {
+      setIncomingRequestCount(requests.length);
+      setRequestsLoaded(true);
+    });
 
     return () => {
       unsubEntries();
       unsubSentCaps();
       unsubReceivedCaps();
+      unsubRequests();
     };
   }, [user]);
 
   useEffect(() => {
-    if (journalsLoaded && sentLoaded && receivedLoaded) {
+    if (journalsLoaded && sentLoaded && receivedLoaded && requestsLoaded) {
       setLoading(false);
     }
-  }, [journalsLoaded, sentLoaded, receivedLoaded]);
+  }, [journalsLoaded, sentLoaded, receivedLoaded, requestsLoaded]);
 
   const handleLogout = async () => {
     try {
@@ -138,10 +146,10 @@ export default function DashboardScreen({ navigation }: Props) {
         </TouchableOpacity>
       </View>
       
-      {/* ✅ Replaced the complex two-pane layout with a single, clean ScrollView. */}
+      {/* The main layout is now a single ScrollView. */}
       <ScrollView contentContainerStyle={styles.container}>
         
-        {/* ✅ "My Stats" card is now at the top. */}
+        {/* The "My Stats" card is now at the top. */}
         <Card title="My Stats" colors={colors}>
           <Text style={{ color: colors.text }}>{journalCount} total journal entries.</Text>
           <Text style={{ color: colors.text, marginTop: spacing.xs }}>{sentCapsules.length} total capsules sent.</Text>
@@ -153,15 +161,15 @@ export default function DashboardScreen({ navigation }: Props) {
           </Text>
         </Card>
 
-        {/* ✅ NEW: Dedicated "My Journal" card. */}
+        {/* The dedicated "My Journal" card. */}
         <Card title="My Journal" colors={colors}>
-              <Text style={{ color: colors.text, marginBottom: spacing.md }}>
-                Keep track of your thoughts and memories. Your journal is a private space unless you choose to share.
-              </Text>
-              <View style={{gap: spacing.sm}}>
-                  <ActionButton title="Write a New Entry" onPress={() => navigation.navigate('CreateJournal', {})} colors={colors} />
-                  <ActionButton title="View All Entries" onPress={() => navigation.navigate('Journal')} colors={colors} type="secondary" />
-              </View>
+            <Text style={{ color: colors.text, marginBottom: spacing.md }}>
+              Keep track of your thoughts and memories.
+            </Text>
+            <View style={{gap: spacing.sm}}>
+                <ActionButton title="Write a New Entry" onPress={() => navigation.navigate('CreateJournal', {})} colors={colors} />
+                <ActionButton title="View All Entries" onPress={() => navigation.navigate('Journal')} colors={colors} type="secondary" />
+            </View>
         </Card>
         
         <Card title="My Time Capsules" colors={colors}>
@@ -179,6 +187,19 @@ export default function DashboardScreen({ navigation }: Props) {
 
         <Card title="Explore & Connect" colors={colors}>
             <View style={{gap: spacing.sm}}>
+                {/* The new "Friend Requests" button, with its notification badge. */}
+                <TouchableOpacity 
+                    style={[styles.notificationButton, {backgroundColor: colors.primary}]} 
+                    onPress={() => navigation.navigate('Notifications')}
+                >
+                    <Text style={[styles.actionButtonText, { color: colors.card }]}>Friend Requests</Text>
+                    {incomingRequestCount > 0 && (
+                        <View style={[styles.badge, {backgroundColor: colors.notification, borderColor: colors.card}]}>
+                            <Text style={styles.badgeText}>{incomingRequestCount}</Text>
+                        </View>
+                    )}
+                </TouchableOpacity>
+
                 <ActionButton title="Find Friends" onPress={() => navigation.navigate('SearchUsers')} colors={colors} type="secondary" />
                 <ActionButton title="My Connections" onPress={() => navigation.navigate('FriendsList', {})} colors={colors} type="secondary" />
                 <ActionButton title="Friends Feed" onPress={() => navigation.navigate('FriendsFeed')} colors={colors} type="secondary" />
@@ -191,7 +212,7 @@ export default function DashboardScreen({ navigation }: Props) {
   );
 }
 
-// ✅ Simplified stylesheet after removing the two-pane layout.
+// The stylesheet is simplified and includes new styles for the notification button and badge.
 const styles = StyleSheet.create({
   safe: { flex: 1 },
   container: { padding: spacing.md },
@@ -201,4 +222,27 @@ const styles = StyleSheet.create({
   cardTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: spacing.sm },
   actionButton: { borderRadius: 8, paddingVertical: 12, alignItems: 'center' },
   actionButtonText: { fontWeight: 'bold', fontSize: 16 },
+  notificationButton: {
+    borderRadius: 8,
+    paddingVertical: 12,
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center'
+  },
+  badge: {
+    position: 'absolute',
+    top: -5,
+    right: -5,
+    borderRadius: 12,
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+  },
+  badgeText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 12,
+  },
 });
