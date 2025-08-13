@@ -1,20 +1,23 @@
-// src/services/firebase.ts (Guaranteed Fallback Version)
+// src/services/firebase.ts (Guaranteed Fallback Version - SECURE)
 
 import { initializeApp, getApp, getApps } from 'firebase/app';
 import { getAuth } from 'firebase/auth'; 
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
+// ✅ The firebaseConfig object now reads its values from your private .env file.
+// It contains no hardcoded secrets and is safe to commit to GitHub.
 const firebaseConfig = {
-    apiKey: "AIzaSyC5kF5MuO9QLr-fJSELasl8WrMoYElw_9I",
-    authDomain: "dv300-classproj2025.firebaseapp.com",
-    projectId: "dv300-classproj2025",
-    storageBucket: "dv300-classproj2025.appspot.com",
-    messagingSenderId: "430663122571",
-    appId: "1:430663122571:web:9b57139c29511b317f1e8e",
-    measurementId: "G-YFW8CFBN5D"
+    apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
+    authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
+    projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
+    storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+    appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
+    measurementId: process.env.EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
+// --- Firebase Initialization (Unchanged) ---
 let app;
 if (!getApps().length) {
   app = initializeApp(firebaseConfig);
