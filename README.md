@@ -277,19 +277,19 @@ package.json
 
 Common commands
 
-# Install matching Expo modules if needed
+## Install matching Expo modules if needed
 
 npx expo install react-native-screens react-native-safe-area-context react-native-reanimated expo-image-picker
 
-# Clear Metro cache
+## Clear Metro cache
 
 npx expo start -c
 
-# Use tunnel if LAN fails
+## Use tunnel if LAN fails
 
 npx expo start --tunnel
 
-📱 Expo Go Tips
+## 📱 Expo Go Tips
 
 If QR scan doesn’t load the app:
 
