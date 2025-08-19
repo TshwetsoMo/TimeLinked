@@ -42,13 +42,13 @@ Expo Go installed on your device (Android/iOS)
 
 A Firebase project with Auth, Firestore, and Storage enabled
 
-##🚀 Quick Start
+## 🚀 Quick Start
 
-# install dependencies
+## install dependencies
 
 npm install
 
-# start the dev server (tunnel is most reliable)
+## start the dev server (tunnel is most reliable)
 
 npx expo start --tunnel
 
