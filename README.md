@@ -280,7 +280,7 @@ Embed:
 **Option C: GIF demo**
 
 ```md
-![App Demo](assets/mockups/TimeLink_Demo.mp4)
+![App Demo](https://drive.google.com/file/d/1XFYxnq2RMVfamPVBhObwc-1NxEM8piwt/view?usp=drive_link)
 ```
 
 ## 👨‍💻 Developer Contact
