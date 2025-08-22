@@ -1,26 +1,24 @@
 # TimeLink — Stay connected, across time and memory
 
-TimeLink is a cross-platform (iOS & Android) React Native app built with Expo and TypeScript. It helps you preserve connection across time through Daily Journals and Scheduled Time Capsules (messages set to arrive at meaningful future moments). The UI is landscape-first and the backend uses Firebase (Auth, Firestore, Storage).
+TimeLink is a cross-platform (iOS & Android) React Native app built with Expo and TypeScript. It helps you preserve connection across time through Daily Journals and Scheduled Time Capsules (messages set to arrive at meaningful future moments). The UI has landscape afinity and the backend uses Firebase (Auth, Firestore, Storage).
 
 ## ✨ Features
 
-Welcome / Onboarding — clean first-run experience with quick access to Register and Login
+Welcome / Onboarding: clean first-run experience with quick access to Register and Login
 
-Authentication — Email/Password via Firebase Auth with persistent sessions
+Authentication: Email/Password via Firebase Auth with persistent sessions
 
-Dashboard (Landscape-first) — split-pane timeline: left list, right details & quick actions
+Dashboard (Landscape-ability): divided into multiple functional sections - My Stats, Your Inbox, My Journal, My Time Capsules, Explore and Connect.
 
-Daily Journal — private entries (CRUD) with timestamps
+Daily Journal: private, friends and public entries (CRUD) with timestamps
 
-Time Capsules — compose messages (optionally to a friend), choose future delivery date/time
+Time Capsules: compose messages (optionally to a friend), choose future delivery date/time
 
-Smart Flow — after scheduling a capsule, the app replaces the stack to Dashboard
+Profile: update display name and photo (Storage upload via expo-image-picker) also change colour theme (dark mode and light mode)
 
-Profile — update display name and photo (Storage upload via expo-image-picker)
+Micro-interactions: Reanimated + Moti
 
-Micro-interactions — Reanimated + Moti
-
-Accessibility — sensible contrast, large touch targets, readable typography
+Accessibility: sensible contrast, large touch targets, readable typography
 
 ## 🧱 Tech Stack
 
@@ -44,13 +42,13 @@ A Firebase project with Auth, Firestore, and Storage enabled
 
 ## 🚀 Quick Start
 
-## install dependencies
+### install dependencies
 
 npm install
 
-## start the dev server (tunnel is most reliable)
+### start the dev server (tunnel is most reliable)
 
-npx expo start --tunnel
+{ npx expo start --tunnel }
 
 Scan the QR in Expo Go.
 
