@@ -8,7 +8,7 @@ TimeLink is a cross-platform (iOS & Android) React Native app built with **Expo*
 
 - **Welcome / Onboarding** - quick access to Register and Login
 - **Authentication** - Email/Password via Firebase Auth with persistent sessions
-- **Dashboard (Landscape)** - sections: My Stats, Your Inbox, My Journal, My Time Capsules, Explore & Connect
+- **Dashboard (Landscape afinity)** - sections: My Stats, Your Inbox, My Journal, My Time Capsules, Explore & Connect
 - **Daily Journal** - private, friends, and public entries (CRUD) with timestamps
 - **Time Capsules** - compose messages, choose future delivery date/time
 - **Profile** - update display name and photo (Storage upload via `expo-image-picker`), light/dark theme toggle
@@ -245,24 +245,30 @@ npx expo start --tunnel
 **Option A: Local images in repo**
 
 ```
-/docs/mockups/
+/assets/mockups/
   01_welcome.png
   02_register.png
   03_login.png
   04_dashboard_landscape.png
   05_create_capsule.png
-  06_profile.png
+  06_create_journal.png
+  07_profile.png
+  08_dark_mode.png
+  09_darkmode_dash.png
 ```
 
 Embed:
 
 ```md
-![Welcome](docs/mockups/01_welcome.png)
-![Register](docs/mockups/02_register.png)
-![Login](docs/mockups/03_login.png)
-![Dashboard (Landscape)](docs/mockups/04_dashboard_landscape.png)
-![Create Capsule](docs/mockups/05_create_capsule.png)
-![Profile](docs/mockups/06_profile.png)
+![Welcome](assets/mockups/01_welcome.png)
+![Register](assets/mockups/02_register.png)
+![Login](assets/mockups/03_login.png)
+![Dashboard](assets/mockups/04_dashboard.png)
+![Create Capsule](assets/mockups/05_create_capsule.png)
+![Create Journal](assets/mockups/06_create_journal.png)
+![Profile](assets/mockups/07_profile.png)
+![Dark mode](assets/mockups/08_dark_mode.png)
+![Dark mode dash](assets/mockups/09_darkmode_dash.png)
 ```
 
 **Option B: Figma link**
@@ -274,19 +280,17 @@ Embed:
 **Option C: GIF demo**
 
 ```md
-![App Demo](docs/mockups/timelink_demo.gif)
+![App Demo](assets/mockups/TimeLink_Demo.mp4)
 ```
 
 ## 👨‍💻 Developer Contact
 
-- **Name:** Your Name
-- **Email:** [you@example.com](mailto:you@example.com)
-- **Portfolio:** [https://your-portfolio-url.com](https://your-portfolio-url.com)
-- **LinkedIn:** [https://www.linkedin.com/in/your-handle](https://www.linkedin.com/in/your-handle)
-- **GitHub:** [https://github.com/your-handle](https://github.com/your-handle)
-- **Twitter/X:** @yourhandle
-
-Add your student number and module if this is for coursework.
+- **Name:** Tshwetso K. Mokgatlhe
+- **Email:** [tshwetsomokgatlhe98@gmail.com](mailto:tshwetsomokgatlhe98@gmail.com)
+- **Portfolio:** [Coming Soon]
+- **GitHub:** [https://github.com/TshwetsoMo/TimeLinked.git](https://github.com/TshwetsoMo/TimeLinked.git)
+- **Student number:** 221411
+- **Course code:** DV300
 
 ---
 
@@ -302,4 +306,3 @@ Add your student number and module if this is for coursework.
 ## 📄 License
 
 © 2025 TimeLink. Coursework and personal portfolio use.
-Replace with your preferred license if open-sourcing.
