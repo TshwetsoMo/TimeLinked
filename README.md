@@ -1,110 +1,114 @@
-# TimeLink — Stay connected, across time and memory
+# TimeLink - Stay connected, across time and memory
 
-TimeLink is a cross-platform (iOS & Android) React Native app built with Expo and TypeScript. It helps you preserve connection across time through Daily Journals and Scheduled Time Capsules (messages set to arrive at meaningful future moments). The UI has landscape afinity and the backend uses Firebase (Auth, Firestore, Storage).
+TimeLink is a cross-platform (iOS & Android) React Native app built with **Expo** and **TypeScript**. It helps you preserve connection across time through **Daily Journals** and **Scheduled Time Capsules** (messages that arrive at meaningful future moments). The UI has **landscape affinity** and the backend uses **Firebase** (Auth, Firestore, Storage).
+
+---
 
 ## ✨ Features
 
-Welcome / Onboarding: clean first-run experience with quick access to Register and Login
+- **Welcome / Onboarding** - quick access to Register and Login
+- **Authentication** - Email/Password via Firebase Auth with persistent sessions
+- **Dashboard (Landscape)** - sections: My Stats, Your Inbox, My Journal, My Time Capsules, Explore & Connect
+- **Daily Journal** - private, friends, and public entries (CRUD) with timestamps
+- **Time Capsules** - compose messages, choose future delivery date/time
+- **Profile** - update display name and photo (Storage upload via `expo-image-picker`), light/dark theme toggle
+- **Micro-interactions** - Reanimated + Moti
+- **Accessibility** - sensible contrast, large touch targets, readable typography
 
-Authentication: Email/Password via Firebase Auth with persistent sessions
-
-Dashboard (Landscape-ability): divided into multiple functional sections - My Stats, Your Inbox, My Journal, My Time Capsules, Explore and Connect.
-
-Daily Journal: private, friends and public entries (CRUD) with timestamps
-
-Time Capsules: compose messages (optionally to a friend), choose future delivery date/time
-
-Profile: update display name and photo (Storage upload via expo-image-picker) also change colour theme (dark mode and light mode)
-
-Micro-interactions: Reanimated + Moti
-
-Accessibility: sensible contrast, large touch targets, readable typography
+---
 
 ## 🧱 Tech Stack
 
-Runtime: Expo SDK 53, React Native 0.79, TypeScript
+- **Runtime:** Expo SDK 53, React Native 0.79, TypeScript
+- **Navigation:** `@react-navigation/native` + Native Stack
+- **Backend:** Firebase (Authentication, Firestore, Storage)
+- **Animations:** `react-native-reanimated`, `moti`
+- **Media:** `expo-image-picker`
 
-Navigation: @react-navigation/native + Native Stack
-
-Backend: Firebase (Authentication, Firestore, Storage)
-
-Animations: react-native-reanimated, moti
-
-Media: expo-image-picker
+---
 
 ## 📦 Requirements
 
-Node.js LTS recommended (v18 or v20)
+- **Node.js LTS** recommended (v18 or v20)
+- **Expo Go** installed on your device (Android/iOS)
+- A **Firebase project** with **Auth**, **Firestore**, and **Storage** enabled
 
-Expo Go installed on your device (Android/iOS)
-
-A Firebase project with Auth, Firestore, and Storage enabled
+---
 
 ## 🚀 Quick Start
 
-### install dependencies
-
+```bash
+# install dependencies
 npm install
 
-### start the dev server (tunnel is most reliable)
+# start the dev server (tunnel is most reliable)
+npx expo start --tunnel
+```
 
-{ npx expo start --tunnel }
+Scan the QR in **Expo Go**.
 
-Scan the QR in Expo Go.
-
-If LAN fails (VPN, firewall), keep using --tunnel.
+If LAN fails (VPN or firewall), keep using `--tunnel`.
 
 If you previously installed the legacy global CLI, remove it:
 
+```bash
 npm uninstall -g expo-cli
+```
 
-## Project Structure 🗂️
+---
 
+## 🗂️ Project Structure
+
+```
 /src
-/config
-firebaseConfig.ts
-/context
-AuthContext.tsx # or /services/authContext.tsx if you prefer
-/navigation
-AppNavigation.tsx # exports RootStackParamList + Stack
-/screens
-WelcomeScreen.tsx
-LoginScreen.tsx
-RegisterScreen.tsx
-DashboardScreen.tsx
-JournalScreen.tsx
-CreateCapsuleScreen.tsx
-Profile.tsx
-FriendsList.tsx # (optional)
-/services
-capsules.ts # createCapsule, updateCapsule, getCapsule...
-users.ts # getUserProfile, update user doc...
-/theme
-ThemeContext.tsx
-useTheme.ts
-spacing.ts
+  /config
+    firebaseConfig.ts
+  /context
+    AuthContext.tsx                  # or /services/authContext.tsx if you prefer
+  /navigation
+    AppNavigation.tsx                # exports RootStackParamList + Stack
+  /screens
+    WelcomeScreen.tsx
+    LoginScreen.tsx
+    RegisterScreen.tsx
+    DashboardScreen.tsx
+    JournalScreen.tsx
+    CreateCapsuleScreen.tsx
+    Profile.tsx
+    FriendsList.tsx                  # optional
+  /services
+    capsules.ts                      # createCapsule, updateCapsule, getCapsule...
+    users.ts                         # getUserProfile, update user doc...
+  /theme
+    ThemeContext.tsx
+    useTheme.ts
+    spacing.ts
 App.tsx
 babel.config.js
 package.json
+```
 
-## Firebase Setup 🔐
+---
 
-Create a Firebase project → Add Web App → copy the config → enable Email/Password auth → create a Firestore database (test mode for dev) → enable Storage.
+## 🔐 Firebase Setup
 
-/src/config/firebaseConfig.ts
+Create a Firebase project, add a Web App, copy the config, enable Email/Password auth, create a Firestore database (test mode for development), and enable Storage.
 
-import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
-import { getStorage } from 'firebase/storage';
+**`/src/config/firebaseConfig.ts`**
+
+```ts
+import { initializeApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
-apiKey: 'YOUR_API_KEY',
-authDomain: 'YOUR_PROJECT.firebaseapp.com'
-projectId: 'YOUR_PROJECT',
-storageBucket: 'YOUR_PROJECT.appspot.com',
-messagingSenderId: '...',
-appId: '...'
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "...",
+  appId: "...",
 };
 
 const app = initializeApp(firebaseConfig);
@@ -112,101 +116,52 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
+```
 
-In client apps, Firebase config keys are public by design. Keep rules strict.
+Note: In client apps, Firebase config keys are public by design. Keep rules strict.
 
-## 🧭 Navigation Types
-
-/src/navigation/AppNavigation.tsx
-
-import React from 'react';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import WelcomeScreen from '../screens/WelcomeScreen';
-import RegisterScreen from '../screens/RegisterScreen';
-import LoginScreen from '../screens/LoginScreen';
-import DashboardScreen from '../screens/DashboardScreen';
-import JournalScreen from '../screens/JournalScreen';
-import CreateCapsuleScreen from '../screens/CreateCapsuleScreen';
-import Profile from '../screens/Profile';
-import { NavigationContainer } from '@react-navigation/native';
-
-export type RootStackParamList = {
-Welcome: undefined;
-Register: undefined;
-Login: undefined;
-Dashboard: undefined;
-Journal: undefined;
-CreateCapsule:
-| { capsuleId?: string; selectedRecipient?: any }
-| undefined;
-FriendsList: { asPicker?: boolean } | undefined;
-Profile: undefined;
-};
-
-const Stack = createNativeStackNavigator<RootStackParamList>();
-
-export default function AppNavigation() {
-return (
-<NavigationContainer>
-<Stack.Navigator initialRouteName="Welcome" screenOptions={{ headerShown: false }}>
-<Stack.Screen name="Welcome" component={WelcomeScreen} />
-<Stack.Screen name="Register" component={RegisterScreen} />
-<Stack.Screen name="Login" component={LoginScreen} />
-<Stack.Screen name="Dashboard" component={DashboardScreen} />
-<Stack.Screen name="Journal" component={JournalScreen} />
-<Stack.Screen name="CreateCapsule" component={CreateCapsuleScreen} />
-<Stack.Screen name="Profile" component={Profile} />
-</Stack.Navigator>
-</NavigationContainer>
-);
-}
-
-Navigate (typed) examples
-
-// From Welcome → Register
-navigation.navigate({ name: 'Register' });
-
-// From Login → Dashboard
-navigation.navigate('Dashboard');
-
-// From CreateCapsule → Dashboard (replace so back does not return)
-navigation.replace('Dashboard');
+---
 
 ## 🗃️ Firestore Data Model
 
-Collections
+**Collections**
 
+```
 /users/{uid}
-displayName: string
-email: string
-photoURL?: string
-createdAt: Timestamp
+  displayName: string
+  email: string
+  photoURL?: string
+  createdAt: Timestamp
 
 /journalEntries/{entryId}
-userId: string
-content: string
-createdAt: Timestamp
-mood?: string
+  userId: string
+  content: string
+  createdAt: Timestamp
+  mood?: string
 
 /timeCapsules/{capsuleId}
-userId: string # sender uid
-recipientId: string # recipient uid (or email-derived ID)
-title?: string
-message: string
-deliveryDate: Timestamp
-createdAt: Timestamp
-status: 'scheduled' | 'delivered'
+  userId: string          # sender uid
+  recipientId: string     # recipient uid or email-derived ID
+  title?: string
+  message: string
+  deliveryDate: Timestamp
+  createdAt: Timestamp
+  status: 'scheduled' | 'delivered'
+```
 
-Delivery timing (MVP): client shows capsules as “available” when deliveryDate <= now.
-Production idea: use Cloud Scheduler + Cloud Functions to mark final delivery server-side.
+Delivery timing (MVP): show capsules as available when `deliveryDate <= now`.
+Production idea: use Cloud Scheduler + Cloud Functions to mark final delivery server side.
+
+---
 
 ## 🔒 Example Security Rules (Development)
 
-Firestore (lenient for dev — lock down for prod)
+**Firestore** (lenient for development - lock down for production)
 
+```js
 rules_version = '2';
 service cloud.firestore {
-match /databases/{database}/documents {
+  match /databases/{database}/documents {
 
     match /users/{uid} {
       allow read, write: if request.auth != null && request.auth.uid == uid;
@@ -226,104 +181,125 @@ match /databases/{database}/documents {
         resource.data.recipientId == request.auth.uid
       );
     }
-
+  }
 }
-}
+```
 
-Storage (profile photos)
+**Storage** (profile photos)
 
+```js
 rules_version = '2';
 service firebase.storage {
-match /b/{bucket}/o {
-match /profiles/{uid}.jpg {
-allow read: if true; // or restrict by auth
-allow write: if request.auth != null && request.auth.uid == uid;
+  match /b/{bucket}/o {
+    match /profiles/{uid}.jpg {
+      allow read: if true; // or restrict by auth
+      allow write: if request.auth != null && request.auth.uid == uid;
+    }
+  }
 }
-}
-}
+```
 
-## 🧩 Babel & Reanimated
+---
 
-babel.config.js
+## 🧰 Helpful Commands
 
-module.exports = function (api) {
-api.cache(true);
-return {
-presets: ['babel-preset-expo'],
-plugins: [
-'react-native-reanimated/plugin', // keep this last
-],
-};
-};
+**Install matching Expo modules if needed**
 
-Restart with cache clear after changing Babel:
-
-npx expo start -c
-
-## 🧰 Useful Scripts
-
-package.json
-
-{
-"scripts": {
-"start": "expo start",
-"android": "expo start --android",
-"ios": "expo start --ios",
-"web": "expo start --web"
-}
-}
-
-Common commands
-
-## Install matching Expo modules if needed
-
+```bash
 npx expo install react-native-screens react-native-safe-area-context react-native-reanimated expo-image-picker
+```
 
-## Clear Metro cache
+**Clear Metro cache**
 
+```bash
 npx expo start -c
+```
 
-## Use tunnel if LAN fails
+**Use tunnel if LAN fails**
 
+```bash
 npx expo start --tunnel
+```
+
+---
 
 ## 📱 Expo Go Tips
 
-If QR scan doesn’t load the app:
+- If QR scan does not load the app:
 
-Use tunnel mode.
+  - Use tunnel mode.
+  - Ensure phone and computer are on the same Wi-Fi if using LAN.
+  - Disable VPN or firewall, or keep using `--tunnel`.
 
-Ensure phone and computer are on the same Wi-Fi (if using LAN).
+- Android USB development:
 
-Disable VPN/firewall or keep using --tunnel.
+  ```bash
+  npx expo start --localhost
+  adb reverse tcp:8081 tcp:8081
+  ```
 
-Android USB dev:
+---
 
-npx expo start --localhost
-adb reverse tcp:8081 tcp:8081
+## 🎨 Mockups
 
-## 🧭 Roadmap (Suggested)
+**Option A: Local images in repo**
 
-Friends list & invitations
+```
+/docs/mockups/
+  01_welcome.png
+  02_register.png
+  03_login.png
+  04_dashboard_landscape.png
+  05_create_capsule.png
+  06_profile.png
+```
 
-Push notifications for capsule delivery
+Embed:
 
-Voice notes & media attachments (update Storage rules)
+```md
+![Welcome](docs/mockups/01_welcome.png)
+![Register](docs/mockups/02_register.png)
+![Login](docs/mockups/03_login.png)
+![Dashboard (Landscape)](docs/mockups/04_dashboard_landscape.png)
+![Create Capsule](docs/mockups/05_create_capsule.png)
+![Profile](docs/mockups/06_profile.png)
+```
 
-Offline-first caching & optimistic UI
+**Option B: Figma link**
 
-Backend scheduled delivery (Cloud Scheduler + Functions)
+```md
+**Figma:** https://github.com/TshwetsoMo/TimeLinked.git
+```
+
+**Option C: GIF demo**
+
+```md
+![App Demo](docs/mockups/timelink_demo.gif)
+```
+
+## 👨‍💻 Developer Contact
+
+- **Name:** Your Name
+- **Email:** [you@example.com](mailto:you@example.com)
+- **Portfolio:** [https://your-portfolio-url.com](https://your-portfolio-url.com)
+- **LinkedIn:** [https://www.linkedin.com/in/your-handle](https://www.linkedin.com/in/your-handle)
+- **GitHub:** [https://github.com/your-handle](https://github.com/your-handle)
+- **Twitter/X:** @yourhandle
+
+Add your student number and module if this is for coursework.
+
+---
 
 ## 🐛 Troubleshooting
 
-TypeScript “Cannot find module …” → check relative paths and ensure files exist (/navigation/AppNavigation.tsx, /theme/useTheme.ts, etc.)
+- TypeScript "Cannot find module ..." - check relative paths and ensure files exist (`/navigation/AppNavigation.tsx`, `/theme/useTheme.ts`, etc.)
+- Reanimated errors or blank screen - confirm Babel plugin and clear cache
+- Auth "network request failed" - verify Firebase config and device connectivity
+- Expo Go fails to connect - use `--tunnel` or disable VPN/firewall, remove legacy global CLI
 
-Reanimated errors/blank screen → confirm Babel plugin and clear cache
-
-Auth “network request failed” → verify Firebase config, device connectivity, and emulator/device network
-
-Expo Go fails to connect → use --tunnel or disable VPN/firewall; remove legacy global CLI
+---
 
 ## 📄 License
 
 © 2025 TimeLink. Coursework and personal portfolio use.
+Replace with your preferred license if open-sourcing.
