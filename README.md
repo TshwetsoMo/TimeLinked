@@ -1,308 +1,187 @@
-# TimeLink - Stay connected, across time and memory
+<!-- REPLACE ALL THE [USERNAME] TEXT WITH YOUR GITHUB PROFILE NAME & THE [PROJECTNAME] WITH THE NAME OF YOUR GITHUB PROJECT -->
 
-TimeLink is a cross-platform (iOS & Android) React Native app built with **Expo** and **TypeScript**. It helps you preserve connection across time through **Daily Journals** and **Scheduled Time Capsules** (messages that arrive at meaningful future moments). The UI has **landscape affinity** and the backend uses **Firebase** (Auth, Firestore, Storage).
+<!-- Repository Information & Links-->
+<br />
+
+![GitHub repo size](https://img.shields.io/github/repo-size/TshwetsoMo/TimeLinked?color=%23000000)
+![GitHub watchers](https://img.shields.io/github/watchers/TshwetsoMo/TimeLinked?color=%23000000)
+![GitHub language count](https://img.shields.io/github/languages/count/TshwetsoMo/TimeLinked?color=%23000000)
+![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/TshwetsoMo/TimeLinked?color=%23000000)
+[![LinkedIn][linkedin-shield]][linkedin-url]
+[![Instagram][instagram-shield]][instagram-url]
+[![Behance][behance-shield]][behance-url]
+
+<!-- HEADER SECTION -->
+<h5 align="center" style="padding:0;margin:0;">Tshwetso K. Mokgatlhe</h5>
+<h5 align="center" style="padding:0;margin:0;">Student Number: 221411</h5>
+<h6 align="center">DV300 | Interaction Development | 2025</h6>
+</br>
+<p align="center">
+
+  <a href="https://github.com/TshwetsoMo/TimeLinked">
+    <img src="assets/logo.png" alt="Logo" width="140" height="140">
+  </a>
+  
+  <h3 align="center">TimeLink</h3>
+
+  <p align="center">
+    Stay connected, across time and memory. A cross-platform journaling & time capsule app.<br>
+      <a href="https://github.com/TshwetsoMo/TimeLinked"><strong>Explore the docs »</strong></a>
+   <br />
+   <br />
+   <a href="https://drive.google.com/file/d/1XFYxnq2RMVfamPVBhObwc-1NxEM8piwt/view?usp=drive_link">View Demo</a>
+    ·
+    <a href="https://github.com/TshwetsoMo/TimeLinked/issues">Report Bug</a>
+    ·
+    <a href="https://github.com/TshwetsoMo/TimeLinked/issues">Request Feature</a>
+</p>
 
 ---
 
-## ✨ Features
-
-- **Welcome / Onboarding** - quick access to Register and Login
-- **Authentication** - Email/Password via Firebase Auth with persistent sessions
-- **Dashboard (Landscape afinity)** - sections: My Stats, Your Inbox, My Journal, My Time Capsules, Explore & Connect
-- **Daily Journal** - private, friends, and public entries (CRUD) with timestamps
-- **Time Capsules** - compose messages, choose future delivery date/time
-- **Profile** - update display name and photo (Storage upload via `expo-image-picker`), light/dark theme toggle
-- **Micro-interactions** - Reanimated + Moti
-- **Accessibility** - sensible contrast, large touch targets, readable typography
-
----
-
-## 🧱 Tech Stack
-
-- **Runtime:** Expo SDK 53, React Native 0.79, TypeScript
-- **Navigation:** `@react-navigation/native` + Native Stack
-- **Backend:** Firebase (Authentication, Firestore, Storage)
-- **Animations:** `react-native-reanimated`, `moti`
-- **Media:** `expo-image-picker`
+## Table of Contents
+* [About the Project](#about-the-project)
+  * [Project Description](#project-description)
+  * [Built With](#built-with)
+* [Getting Started](#getting-started)
+  * [Prerequisites](#prerequisites)
+  * [How to Install](#how-to-install)
+* [Features and Functionality](#features-and-functionality)
+* [Concept Process](#concept-process)
+* [Development Process](#development-process)
+* [Final Outcome](#final-outcome)
+* [Roadmap](#roadmap)
+* [Contributing](#contributing)
+* [License](#license)
+* [Contact](#contact)
+* [Acknowledgements](#acknowledgements)
 
 ---
 
-## 📦 Requirements
+## 🧠 About the Project
+![image1][image1]
 
-- **Node.js LTS** recommended (v18 or v20)
-- **Expo Go** installed on your device (Android/iOS)
-- A **Firebase project** with **Auth**, **Firestore**, and **Storage** enabled
+### Project Description
+**TimeLink** is a cross-platform (iOS & Android) React Native app built with **Expo** and **TypeScript**.  
+It helps users preserve connections across time through **Daily Journals** and **Scheduled Time Capsules**—messages that resurface at meaningful future moments.  
+The UI has **landscape affinity**, and the backend uses **Firebase** for authentication, storage, and real-time data.
+
+### Built With
+* [Expo SDK 54](https://expo.dev)
+* [React Native 0.81](https://reactnative.dev/)
+* [TypeScript 5](https://www.typescriptlang.org/)
+* [Firebase Auth & Firestore](https://firebase.google.com/)
+* [Reanimated 4 + Moti](https://docs.expo.dev/versions/latest/sdk/reanimated/)
+* [React Navigation v7](https://reactnavigation.org/)
+* [Expo Image Picker](https://docs.expo.dev/versions/latest/sdk/imagepicker/)
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Getting Started
 
+### Prerequisites
+- Node.js LTS (≥ 18)
+- Expo Go app (Android/iOS)
+- A configured Firebase project with **Auth**, **Firestore**, and **Storage**
+
+### How to Install
 ```bash
-# install dependencies
+# Clone repository
+git clone https://github.com/TshwetsoMo/TimeLinked.git
+cd TimeLinked
+```
+
+# Install dependencies
+```
 npm install
+```
 
-# start the dev server (tunnel is most reliable)
+# Start Expo server (tunnel recommended)
+```
 npx expo start --tunnel
+Scan the QR code in Expo Go.
+If LAN fails, continue using --tunnel.
 ```
 
-Scan the QR in **Expo Go**.
+## ⚙️ Features and Functionality
 
-If LAN fails (VPN or firewall), keep using `--tunnel`.
-
-If you previously installed the legacy global CLI, remove it:
-
-```bash
-npm uninstall -g expo-cli
-```
+- **Welcome / Onboarding** – seamless access to Register & Login  
+- **Authentication** – Firebase Email/Password with persistent sessions  
+- **Dashboard** – landscape-optimised hub for Journal, Inbox & Capsules  
+- **Daily Journal** – CRUD entries with moods and timestamps  
+- **Time Capsules** – messages scheduled for future delivery  
+- **Profile** – editable display name + photo, theme toggle  
+- **Micro-interactions** – Reanimated + Moti  
+- **Accessibility** – clear contrast, large touch targets, readable typography  
 
 ---
 
-## 🗂️ Project Structure
+## 🧩 Development Process
 
-```
-/src
-  /config
-    firebaseConfig.ts
-  /context
-    AuthContext.tsx                  # or /services/authContext.tsx if you prefer
-  /navigation
-    AppNavigation.tsx                # exports RootStackParamList + Stack
-  /screens
-    WelcomeScreen.tsx
-    LoginScreen.tsx
-    RegisterScreen.tsx
-    DashboardScreen.tsx
-    JournalScreen.tsx
-    CreateCapsuleScreen.tsx
-    Profile.tsx
-    FriendsList.tsx                  # optional
-  /services
-    capsules.ts                      # createCapsule, updateCapsule, getCapsule...
-    users.ts                         # getUserProfile, update user doc...
-  /theme
-    ThemeContext.tsx
-    useTheme.ts
-    spacing.ts
-App.tsx
-babel.config.js
-package.json
-```
+### Implementation
+- **Stack:** Expo + TypeScript + Firebase + Reanimated 4  
+- **Architecture:** Component-based modular design with Auth Context  
+- **Data:** Firestore collections (`users`, `journalEntries`, `timeCapsules`)  
+- **Auth Persistence:** AsyncStorage via `getReactNativePersistence`  
+- **Storage:** Profile images handled with `expo-image-picker`  
+
+### Highlights
+- Migration to Expo SDK 54 / RN 0.81  
+- Reanimated 4 + Worklets for smoother UI motion  
+- Firestore rules structured for secure per-user data access  
+
+### Challenges
+- Handling RN version mismatch with Expo Go  
+- Managing async Firestore reads + state without race conditions  
+- Maintaining performance in landscape layouts  
+
+### Future Implementation
+- Push notifications for capsule deliveries  
+- Cloud Functions for timed release server-side  
+- Social “memory threads” for shared capsules  
 
 ---
 
-## 🔐 Firebase Setup
+## 🎨 Final Outcome
 
-Create a Firebase project, add a Web App, copy the config, enable Email/Password auth, create a Firestore database (test mode for development), and enable Storage.
-
-**`/src/config/firebaseConfig.ts`**
-
-```ts
-import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
-import { getStorage } from "firebase/storage";
-
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "...",
-  appId: "...",
-};
-
-const app = initializeApp(firebaseConfig);
-
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-export const storage = getStorage(app);
-```
-
-Note: In client apps, Firebase config keys are public by design. Keep rules strict.
-
----
-
-## 🗃️ Firestore Data Model
-
-**Collections**
-
-```
-/users/{uid}
-  displayName: string
-  email: string
-  photoURL?: string
-  createdAt: Timestamp
-
-/journalEntries/{entryId}
-  userId: string
-  content: string
-  createdAt: Timestamp
-  mood?: string
-
-/timeCapsules/{capsuleId}
-  userId: string          # sender uid
-  recipientId: string     # recipient uid or email-derived ID
-  title?: string
-  message: string
-  deliveryDate: Timestamp
-  createdAt: Timestamp
-  status: 'scheduled' | 'delivered'
-```
-
-Delivery timing (MVP): show capsules as available when `deliveryDate <= now`.
-Production idea: use Cloud Scheduler + Cloud Functions to mark final delivery server side.
-
----
-
-## 🔒 Example Security Rules (Development)
-
-**Firestore** (lenient for development - lock down for production)
-
-```js
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-
-    match /users/{uid} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
-    }
-
-    match /journalEntries/{id} {
-      allow read, write: if request.auth != null &&
-        request.resource.data.userId == request.auth.uid;
-    }
-
-    match /timeCapsules/{id} {
-      allow create, update, delete: if request.auth != null &&
-        request.resource.data.userId == request.auth.uid;
-
-      allow get, list: if request.auth != null && (
-        resource.data.userId == request.auth.uid ||
-        resource.data.recipientId == request.auth.uid
-      );
-    }
-  }
-}
-```
-
-**Storage** (profile photos)
-
-```js
-rules_version = '2';
-service firebase.storage {
-  match /b/{bucket}/o {
-    match /profiles/{uid}.jpg {
-      allow read: if true; // or restrict by auth
-      allow write: if request.auth != null && request.auth.uid == uid;
-    }
-  }
-}
-```
-
----
-
-## 🧰 Helpful Commands
-
-**Install matching Expo modules if needed**
-
-```bash
-npx expo install react-native-screens react-native-safe-area-context react-native-reanimated expo-image-picker
-```
-
-**Clear Metro cache**
-
-```bash
-npx expo start -c
-```
-
-**Use tunnel if LAN fails**
-
-```bash
-npx expo start --tunnel
-```
-
----
-
-## 📱 Expo Go Tips
-
-- If QR scan does not load the app:
-
-  - Use tunnel mode.
-  - Ensure phone and computer are on the same Wi-Fi if using LAN.
-  - Disable VPN or firewall, or keep using `--tunnel`.
-
-- Android USB development:
-
-  ```bash
-  npx expo start --localhost
-  adb reverse tcp:8081 tcp:8081
-  ```
-
----
-
-## 🎨 Mockups
-
-**Option A: Local images in repo**
-
-```
-/assets/mockups/
-  01_welcome.png
-  02_register.png
-  03_login.png
-  04_dashboard_landscape.png
-  05_create_capsule.png
-  06_create_journal.png
-  07_profile.png
-  08_dark_mode.png
-  09_darkmode_dash.png
-```
-
-Embed:
-
-```md
+### Mockups
+<!-- Drop your PNGs into assets/mockups/ with these exact names or update the refs below -->
 ![Welcome](assets/mockups/01_welcome.png)
 ![Register](assets/mockups/02_register.png)
 ![Login](assets/mockups/03_login.png)
-![Dashboard](assets/mockups/04_dashboard.png)
+![Dashboard (Landscape)](assets/mockups/04_dashboard_landscape.png)
 ![Create Capsule](assets/mockups/05_create_capsule.png)
 ![Create Journal](assets/mockups/06_create_journal.png)
 ![Profile](assets/mockups/07_profile.png)
-![Dark mode](assets/mockups/08_dark_mode.png)
-![Dark mode dash](assets/mockups/09_darkmode_dash.png)
-```
+![Dark Mode](assets/mockups/08_dark_mode.png)
+![Dark Mode Dashboard](assets/mockups/09_darkmode_dash.png)
 
-**Option B: Figma link**
-
-```md
-**Figma:** https://github.com/TshwetsoMo/TimeLinked.git
-```
-
-**Option C: GIF demo**
-
-```md
-![App Demo](https://drive.google.com/file/d/1XFYxnq2RMVfamPVBhObwc-1NxEM8piwt/view?usp=drive_link)
-```
-
-## 👨‍💻 Developer Contact
-
-- **Name:** Tshwetso K. Mokgatlhe
-- **Email:** [tshwetsomokgatlhe98@gmail.com](mailto:tshwetsomokgatlhe98@gmail.com)
-- **Portfolio:** [Coming Soon]
-- **GitHub:** [https://github.com/TshwetsoMo/TimeLinked.git](https://github.com/TshwetsoMo/TimeLinked.git)
-- **Student number:** 221411
-- **Course code:** DV300
+### Video Demonstration
+[View Demonstration](https://drive.google.com/file/d/1XFYxnq2RMVfamPVBhObwc-1NxEM8piwt/view?usp=drive_link)
 
 ---
 
-## 🐛 Troubleshooting
-
-- TypeScript "Cannot find module ..." - check relative paths and ensure files exist (`/navigation/AppNavigation.tsx`, `/theme/useTheme.ts`, etc.)
-- Reanimated errors or blank screen - confirm Babel plugin and clear cache
-- Auth "network request failed" - verify Firebase config and device connectivity
-- Expo Go fails to connect - use `--tunnel` or disable VPN/firewall, remove legacy global CLI
+## 🗺 Roadmap
+See the [open issues](https://github.com/TshwetsoMo/TimeLinked/issues) for proposed features and known issues.
 
 ---
 
-## 📄 License
-
+## 📜 License
 © 2025 TimeLink. Coursework and personal portfolio use.
+
+---
+
+## 📫 Contact
+- **Tshwetso K. Mokgatlhe** – [tshwetsomokgatlhe98@gmail.com](mailto:tshwetsomokgatlhe98@gmail.com)  
+- **GitHub:** [github.com/TshwetsoMo/TimeLinked](https://github.com/TshwetsoMo/TimeLinked)  
+- **LinkedIn:** [linkedin.com/in/tshwetsomokgatlhe](https://linkedin.com/in/tshwetsomokgatlhe)  
+- **Instagram:** [@tshwetsomo](https://www.instagram.com/tshwetsomo/)  
+
+---
+
+## 🙏 Acknowledgements
+- [Expo Docs](https://docs.expo.dev/)
+- [Firebase Docs](https://firebase.google.com/docs)
+- [React Navigation](https://reactnavigation.org/)
+- [Open Window DV300 Lecturers](https://www.openwindow.co.za/)
+- [Moti Animations](https://moti.fyi/)
+- [Reanimated 4](https://docs.swmansion.com/react-native-reanimated/)
