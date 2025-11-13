@@ -260,15 +260,16 @@ npx expo start --tunnel
 Embed:
 
 ```md
-![Welcome](assets/mockups/01_welcome.png)
-![Register](assets/mockups/02_register.png)
-![Login](assets/mockups/03_login.png)
-![Dashboard](assets/mockups/04_dashboard.png)
-![Create Capsule](assets/mockups/05_create_capsule.png)
-![Create Journal](assets/mockups/06_create_journal.png)
-![Profile](assets/mockups/07_profile.png)
-![Dark mode](assets/mockups/08_dark_mode.png)
-![Dark mode dash](assets/mockups/09_darkmode_dash.png)
+<p align="center">
+  <img src="assets/mockups/01_welcome.png" alt="Welcome" width="80%" style="border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);" />
+  <img src="assets/mockups/02_register.png" alt="Register" width="80%" style="border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);" />
+  <img src="assets/mockups/03_login.png" alt="Login" width="80%" style="border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);" />
+  <img src="assets/mockups/04_dashboard.png" alt="Dashboard" width="80%" style="border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);" />
+  <img src="assets/mockups/05_create_capsule.png" alt="Create Capsule" width="80%" style="border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);" />
+  <img src="assets/mockups/06_create_journal.png" alt="Create Journal" width="80%" style="border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);" /><img src="assets/mockups/07_profile.png" alt="Profile" width="80%" style="border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);" />
+  <img src="assets/mockups/08_dark_mode.png" alt="Dark Mode" width="80%" style="border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);" />
+  <img src="assets/mockups/09_darkmode_dash.png" alt="DarkMode Dashboard" width="80%" style="border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);" />
+</p>
 ```
 
 **Option B: Figma link**
