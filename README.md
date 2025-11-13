@@ -7,9 +7,6 @@
 ![GitHub watchers](https://img.shields.io/github/watchers/TshwetsoMo/TimeLinked?color=%23000000)
 ![GitHub language count](https://img.shields.io/github/languages/count/TshwetsoMo/TimeLinked?color=%23000000)
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/TshwetsoMo/TimeLinked?color=%23000000)
-[![LinkedIn][linkedin-shield]][linkedin-url]
-[![Instagram][instagram-shield]][instagram-url]
-[![Behance][behance-shield]][behance-url]
 
 <!-- HEADER SECTION -->
 <h5 align="center" style="padding:0;margin:0;">Tshwetso K. Mokgatlhe</h5>
@@ -129,46 +126,17 @@ npx expo start --tunnel
 
 ## 🎨 Mockups
 
-**Option A: Local images in repo**
-
-```
-/assets/mockups/
-  01_welcome.png
-  02_register.png
-  03_login.png
-  04_dashboard_landscape.png
-  05_create_capsule.png
-  06_create_journal.png
-  07_profile.png
-  08_dark_mode.png
-  09_darkmode_dash.png
-```
-
-Embed:
-
-```md
-![Welcome](assets/mockups/01_welcome.png)
-![Register](assets/mockups/02_register.png)
-![Login](assets/mockups/03_login.png)
-![Dashboard](assets/mockups/04_dashboard.png)
-![Create Capsule](assets/mockups/05_create_capsule.png)
-![Create Journal](assets/mockups/06_create_journal.png)
-![Profile](assets/mockups/07_profile.png)
-![Dark mode](assets/mockups/08_dark_mode.png)
-![Dark mode dash](assets/mockups/09_darkmode_dash.png)
-```
-
-**Option B: Figma link**
-
-```md
-**Figma:** https://github.com/TshwetsoMo/TimeLinked.git
-```
-
-**Option C: GIF demo**
-
-```md
-![App Demo](https://drive.google.com/file/d/1XFYxnq2RMVfamPVBhObwc-1NxEM8piwt/view?usp=drive_link)
-```
+<p align="center">
+  <img src="TimeLink/assets/mockups/01_welcome.png" alt="Bua Web App Mockup" width="80%" style="border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);" />
+  <img src="TimeLink/assets/mockups/02_register.png" alt="Bua Web App Mockup" width="80%" style="border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);" />
+  <img src="TimeLink/assets/mockups/03_login.png" alt="Bua Web App Mockup" width="80%" style="border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);" />
+  <img src="TimeLink/assets/mockups/04_dashboard.png" alt="Bua Web App Mockup" width="80%" style="border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);" />
+  <img src="TimeLink/assets/mockups/05_create_capsule.png" alt="Bua Web App Mockup" width="80%" style="border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);" />
+  <img src="TimeLink/assets/mockups/06_create_journal.png" alt="Bua Web App Mockup" width="80%" style="border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);" />
+  <img src="TimeLink/assets/mockups/07_profile.png" alt="Bua Web App Mockup" width="80%" style="border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);" />
+  <img src="TimeLink/assets/mockups/08_dark_mode.png" alt="Bua Web App Mockup" width="80%" style="border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);" />
+  <img src="TimeLink/assets/mockups/09_darkmode_dash.png" alt="Bua Web App Mockup" width="80%" style="border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);" />
+</p>
 
 ## 👨‍💻 Developer Contact
 
@@ -200,8 +168,8 @@ Embed:
 
 - **Tshwetso K. Mokgatlhe** – [tshwetsomokgatlhe98@gmail.com](mailto:tshwetsomokgatlhe98@gmail.com)
 - **GitHub:** [github.com/TshwetsoMo/TimeLinked](https://github.com/TshwetsoMo/TimeLinked)
-- **LinkedIn:** [linkedin.com/in/tshwetsomokgatlhe](https://linkedin.com/in/tshwetsomokgatlhe)
-- **Instagram:** [@tshwetsomo](https://www.instagram.com/tshwetsomo/)
+- **LinkedIn:** [linkedin.com/in/tshwetsomokgatlhe](https://www.linkedin.com/in/tshwetso-mokgatlhe-a032672a0?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=ios_app)
+- **Behance:** [Behance](https://www.behance.net/tshwetsmokgatl1)
 
 ---
 
